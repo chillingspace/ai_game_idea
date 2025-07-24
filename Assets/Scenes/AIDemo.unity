@@ -179,6 +179,10 @@ PrefabInstance:
       propertyPath: pathfinder
       value: 
       objectReference: {fileID: 785461231}
+    - target: {fileID: 6592540510716653073, guid: 31d324c86a1c4504993b21f2878abb3f, type: 3}
+      propertyPath: currentState
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
