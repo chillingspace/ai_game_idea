@@ -1,56 +1,52 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+public enum EnemyState
+{
+    Patrol,
+    Chase,
+    RangeAttack,
+    MeleeAttack,
+    Idle
+}
+
 public class EnemyController : MonoBehaviour
 {
     public Transform target;
     public PathfindSystem pathfinder;
     public float moveSpeed;
 
-    private List<Node> path;
-    private int pathIndex;
+    // For enemy attacks
+    public float detectionRadius = 5f;
+    public float meleeRange = 1f;
+    public float rangeAttackRange = 3f;
 
-    private Vector2Int lastPlayerTile;
+    [HideInInspector]
+    public List<Node> path;
+    public int pathIndex;
+    public Vector2Int lastPlayerTile;
+    public EnemyState currentState;
+
+    // Patrol points for simple patrol behavior
+    public List<Vector2> patrolPoints;
+    public int patrolIndex = 0;
+
+    private EnemyStateMachine stateMachine;
 
     void Start()
     {
+        currentState = EnemyState.Patrol;
+
         lastPlayerTile = pathfinder.gridManager.GetNodeFromWorld(target.position).gridPos;
         path = pathfinder.FindPath(transform.position, target.position);
         pathIndex = 0;
+
+        stateMachine = new EnemyStateMachine(this);  // Initialize FSM with reference to this controller
     }
 
     void Update()
     {
-        Node playerNode = pathfinder.gridManager.GetNodeFromWorld(target.position);
-        if (playerNode == null)
-        {
-            Debug.LogWarning("Player is out of bounds or grid not ready!");
-            return;
-        }
-
-        Vector2Int currentPlayerTile = playerNode.gridPos;
-
-        // If the player moved to a new tile, recalculate path
-        if (currentPlayerTile != lastPlayerTile)
-        {
-            lastPlayerTile = currentPlayerTile;
-            path = pathfinder.FindPath(transform.position, target.position);
-            pathIndex = 0;
-        }
-
-        // Movement logic
-        if (path == null || pathIndex >= path.Count) return;
-
-        Vector2 targetPos = pathfinder.gridManager.GetWorldFromNode(path[pathIndex]);
-        Vector2 dir = (targetPos - (Vector2)transform.position).normalized;
-
-        transform.position = Vector2.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
-
-        if (Vector2.Distance(transform.position, targetPos) < 0.1f)
-        {
-            pathIndex++;
-        }
+        stateMachine.FSMUpdate(currentState); // Let FSM handle all updates per frame
     }
-
-
 }
+
