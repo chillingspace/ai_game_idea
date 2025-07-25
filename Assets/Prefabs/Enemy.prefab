@@ -165,10 +165,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27e265775bbb85945abb075e08b8c6a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
-  pathfinder: {fileID: 0}
+  target: {fileID: 5102067515776688611, guid: 3d35350e03f3ec94bb1fbd03a6d3e61b, type: 3}
+  pathfinder: {fileID: 1949660032906376227, guid: 77d2aac4ff704d54486ad5129be90063, type: 3}
   moveSpeed: 3
-  detectionRadius: 5
+  detectionRadius: 7
   meleeRange: 1
   rangeAttackRange: 3
   pathIndex: 0

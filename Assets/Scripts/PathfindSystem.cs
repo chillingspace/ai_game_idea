@@ -7,6 +7,8 @@ public class PathfindSystem : MonoBehaviour
     
     public List<Node> FindPath(Vector2 startWorld, Vector2 endWorld)
     {
+        // Node[,] localGrid = CloneGrid(gridManager.grid);
+
         Node start = gridManager.GetNodeFromWorld(startWorld);
         Node end = gridManager.GetNodeFromWorld(endWorld);
         
@@ -49,7 +51,26 @@ public class PathfindSystem : MonoBehaviour
         }
         return null;
     }
-    
+
+    Node[,] CloneGrid(Node[,] original)
+    {
+        int width = original.GetLength(0);
+        int height = original.GetLength(1);
+        Node[,] clone = new Node[width, height];
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                Node node = original[x, y];
+                clone[x, y] = new Node(node.gridPos, node.walkable);
+            }
+        }
+
+        return clone;
+    }
+
+
     List<Node> GetNeighbors(Node node)
     {
         List<Node> neighbors = new List<Node>();

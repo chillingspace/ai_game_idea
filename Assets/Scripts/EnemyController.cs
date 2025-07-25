@@ -22,7 +22,7 @@ public class EnemyController : MonoBehaviour
     public float rangeAttackRange = 3f;
 
     [HideInInspector]
-    public List<Node> path;
+    public List<Node> path = new List<Node>();
     [HideInInspector]
     public int pathIndex;
     [HideInInspector]
