@@ -2,7 +2,7 @@
 - Project name: ai_game_idea
 - Unity version: Unity 6000.1.2f1
 - Active game object:
-  - Name: Enemy
+  - Name: WallBoundary10x10 (2)
   - Tag: Untagged
   - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
