@@ -23,19 +23,23 @@ public class EnemyController : MonoBehaviour
 
     [HideInInspector]
     public List<Node> path;
+    [HideInInspector]
     public int pathIndex;
+    [HideInInspector]
     public Vector2Int lastPlayerTile;
     public EnemyState currentState;
 
     // Patrol points for simple patrol behavior
+    [HideInInspector]
     public List<Vector2> patrolPoints;
+    [HideInInspector]
     public int patrolIndex = 0;
 
     private EnemyStateMachine stateMachine;
 
     void Start()
     {
-        currentState = EnemyState.Patrol;
+        currentState = EnemyState.Idle;
 
         lastPlayerTile = pathfinder.gridManager.GetNodeFromWorld(target.position).gridPos;
         path = pathfinder.FindPath(transform.position, target.position);
