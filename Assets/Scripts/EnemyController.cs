@@ -39,7 +39,7 @@ public class EnemyController : MonoBehaviour
 
     void Start()
     {
-        currentState = EnemyState.Patrol;
+        currentState = EnemyState.Idle;
 
         lastPlayerTile = pathfinder.gridManager.GetNodeFromWorld(target.position).gridPos;
         path = pathfinder.FindPath(transform.position, target.position);

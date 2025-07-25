@@ -77,6 +77,43 @@ public class GridManager : MonoBehaviour
         return grid[x, y];
     }
 
+    public void SetWalkable(Vector2Int gridPos, bool isWalkable)
+    {
+        if (IsValidGridPos(gridPos))
+        {
+            grid[gridPos.x, gridPos.y].walkable = isWalkable;
+        }
+    }
+
+    public void SetWalkableFromWorld(Vector2 worldPos, bool isWalkable)
+    {
+        Node node = GetNodeFromWorld(worldPos);
+        if (node != null)
+        {
+            node.walkable = isWalkable;
+        }
+    }
+
+    public bool IsValidGridPos(Vector2Int pos)
+    {
+        return pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height;
+    }
+
+    void OnDrawGizmos()
+    {
+        if (grid == null) return;
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                Node node = grid[x, y];
+                Gizmos.color = node.walkable ? Color.green : Color.red;
+                Vector2 worldPos = GetWorldFromNode(node);
+                Gizmos.DrawWireCube(worldPos, Vector3.one * cellSize * 0.9f);
+            }
+        }
+    }
 
 }
 

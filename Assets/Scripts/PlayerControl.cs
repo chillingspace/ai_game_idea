@@ -1,70 +1,59 @@
 using UnityEngine;
 using System.Collections;
+
 public class PlayerControl : MonoBehaviour
 {
-    [SerializeField] private bool is_repeated_move = false;
-    [SerializeField] private float move_duration = 0.1f;
-    [SerializeField] private float grid_size = 1f;
+    public float moveSpeed = 5f;          // Units per second
+    public float gridSize = 1f;           // Size of each grid cell
+    private bool isMoving = false;
 
-    private bool is_moving = false;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-    }
-
-    // Update is called once per frame
     void Update()
     {
-        if (is_moving) return;
+        if (!isMoving)
+        {
+            Vector2 input = Vector2.zero;
 
-        System.Func<KeyCode, bool> inputFunction;
+            if (Input.GetKeyDown(KeyCode.W)) input = Vector2.up;
+            else if (Input.GetKeyDown(KeyCode.S)) input = Vector2.down;
+            else if (Input.GetKeyDown(KeyCode.A)) input = Vector2.left;
+            else if (Input.GetKeyDown(KeyCode.D)) input = Vector2.right;
 
-        if (is_repeated_move)
-        {
-            inputFunction = Input.GetKey;
-        }
-        else
-        {
-            inputFunction = Input.GetKeyDown;
-        }
+            if (input != Vector2.zero)
+            {
+                Vector2 targetPos = (Vector2)transform.position + input * gridSize;
 
-        if (inputFunction(KeyCode.W))
-        {
-            StartCoroutine(Move(Vector2.up));
+                // Optional: check collision here before moving
+                if (CanMoveTo(targetPos))
+                {
+                    StartCoroutine(MoveToPosition(targetPos));
+                }
+            }
         }
-        else if (inputFunction(KeyCode.S))
-        {
-            StartCoroutine(Move(Vector2.down));
-        }
-        else if (inputFunction(KeyCode.A))
-        {
-            StartCoroutine(Move(Vector2.left));
-        }
-        else if (inputFunction(KeyCode.D))
-        {
-            StartCoroutine(Move(Vector2.right));
-        }
-
     }
 
-    private IEnumerator Move(Vector2 direction)
+    private IEnumerator MoveToPosition(Vector2 target)
     {
-        is_moving = true;
+        isMoving = true;
+        Vector2 start = transform.position;
+        float elapsed = 0f;
+        float duration = gridSize / moveSpeed;
 
-        Vector2 start_pos = transform.position;
-        Vector2 end_pos = start_pos + (direction * grid_size);
-
-        float elapsed_time = 0;
-        while (elapsed_time < move_duration) 
+        while (elapsed < duration)
         {
-            elapsed_time += Time.deltaTime;
-            float percent = elapsed_time / move_duration;
-            transform.position = Vector2.Lerp(start_pos, end_pos, percent); 
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            transform.position = Vector2.Lerp(start, target, t);
             yield return null;
         }
 
-        transform.position = end_pos;
+        transform.position = target;
+        isMoving = false;
+    }
 
-        is_moving = false;
+    private bool CanMoveTo(Vector2 targetPos)
+    {
+        // Optional: Add wall/layer collision check
+        RaycastHit2D hit = Physics2D.Raycast(targetPos, Vector2.zero);
+        return hit.collider == null; // no wall or blocker at target
     }
 }

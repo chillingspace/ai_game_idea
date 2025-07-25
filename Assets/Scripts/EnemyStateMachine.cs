@@ -44,6 +44,12 @@ public class EnemyStateMachine
 
     public void PatrolUpdate()
     {
+        if (enemy.patrolPoints == null || enemy.patrolPoints.Count == 0)
+        {
+            Debug.LogWarning("No patrol points assigned to enemy!");
+            return;
+        }
+
         if (enemy.path == null || enemy.pathIndex >= enemy.path.Count)
         {
             enemy.patrolIndex = (enemy.patrolIndex + 1) % enemy.patrolPoints.Count;
