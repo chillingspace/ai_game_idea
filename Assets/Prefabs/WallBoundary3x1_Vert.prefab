@@ -102,7 +102,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa26b19a5165ee841975243aa370d8a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wallSize: {x: 1, y: 1}
+  wallSize: {x: 1, y: 3}
 --- !u!50 &-2972572019910121325
 Rigidbody2D:
   serializedVersion: 5
