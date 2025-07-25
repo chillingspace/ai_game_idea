@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using BehaviorTree;
 
 public enum EnemyState
 {
@@ -12,6 +13,8 @@ public enum EnemyState
 
 public class EnemyController : MonoBehaviour
 {
+    private BTNode behaviorTree;
+
     public Transform target;
     public PathfindSystem pathfinder;
     public float moveSpeed;
@@ -55,10 +58,17 @@ public class EnemyController : MonoBehaviour
         pathIndex = 0;
         stateMachine = new EnemyStateMachine(this);  // Initialize FSM with reference to this controller
         SetupLineRenderer();
+
+        // Create the behavior tree
+        behaviorTree = CreateBehaviorTree();
     }
 
     void Update()
     {
+        // Run the behavior tree to set current goal
+        behaviorTree?.Tick();
+
+        // FSM handle execution of goal
         stateMachine.FSMUpdate(currentState); // Let FSM handle all updates per frame
     }
 
@@ -126,6 +136,46 @@ public class EnemyController : MonoBehaviour
             Destroy(marker);
         }
         spawnedPathMarkers.Clear();
+    }
+
+    // Create the behavior tree structure
+    private BTNode CreateBehaviorTree()
+    {
+        return new Selector(new List<BTNode>
+    {
+        new Sequence(new List<BTNode>
+        {
+            new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= meleeRange),
+            new ActionNode(() => {
+                Debug.Log("BT: Switching to MeleeAttack");
+                currentState = EnemyState.MeleeAttack;
+                return BTResult.Success;
+            })
+        }),
+        new Sequence(new List<BTNode>
+        {
+            new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= rangeAttackRange),
+            new ActionNode(() => {
+                Debug.Log("BT: Switching to RangeAttack");
+                currentState = EnemyState.RangeAttack;
+                return BTResult.Success;
+            })
+        }),
+        new Sequence(new List<BTNode>
+        {
+            new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= detectionRadius),
+            new ActionNode(() => {
+                Debug.Log("BT: Switching to Chase");
+                currentState = EnemyState.Chase;
+                return BTResult.Success;
+            })
+        }),
+        new ActionNode(() => {
+            Debug.Log("BT: Switching to Patrol");
+            currentState = EnemyState.Patrol;
+            return BTResult.Success;
+        })
+    });
     }
 
 }
