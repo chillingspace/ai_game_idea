@@ -73,6 +73,8 @@ public class EnemyStateMachine
             enemy.lastPlayerTile = currentPlayerTile;
             enemy.path = enemy.pathfinder.FindPath(enemy.transform.position, enemy.target.position);
             enemy.pathIndex = 0;
+
+            enemy.VisualizePath();
         }
 
         if (enemy.path == null || enemy.pathIndex >= enemy.path.Count) return;
@@ -105,6 +107,8 @@ public class EnemyStateMachine
 
         enemy.path = enemy.pathfinder.FindPath(enemy.transform.position, enemy.patrolPoints[enemy.patrolIndex]);
         enemy.pathIndex = 0;
+
+        enemy.VisualizePath();
     }
 
     private void MoveAlongPath()
