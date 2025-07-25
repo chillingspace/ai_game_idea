@@ -6,7 +6,7 @@ public class WallBlocker : MonoBehaviour
 
     public Vector2Int wallSize = Vector2Int.one;
 
-    void Awake()
+    void Start()
     {
         gridManager = FindAnyObjectByType<GridManager>();
         if (gridManager == null) return;
@@ -15,6 +15,9 @@ public class WallBlocker : MonoBehaviour
         if (originNode == null) return;
 
         Vector2Int origin = originNode.gridPos;
+
+        // Shift origin to bottom-left corner if wallSize > 1
+        origin -= new Vector2Int(wallSize.x / 2, wallSize.y / 2);
 
         for (int x = 0; x < wallSize.x; x++)
         {
