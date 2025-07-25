@@ -306,6 +306,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6592540510716653073, guid: 31d324c86a1c4504993b21f2878abb3f, type: 3}
+      propertyPath: detectionRadius
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 6592540510716653073, guid: 31d324c86a1c4504993b21f2878abb3f, type: 3}
       propertyPath: pathMarkerPrefab
       value: 
       objectReference: {fileID: 4169191456363831974, guid: 39096ab546cedb14180bc04177e113f3, type: 3}
@@ -489,6 +493,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 5
   gridSize: 1
+  moveDuration: 0.1
 --- !u!212 &371681357
 SpriteRenderer:
   m_ObjectHideFlags: 0
