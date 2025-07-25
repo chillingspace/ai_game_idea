@@ -118,7 +118,7 @@ public class EnemyStateMachine
 
         if (Vector2.Distance(enemy.transform.position, targetPos) < 0.1f)
         {
-            enemy.pathIndex++;
+            enemy.pathIndex++;  
         }
     }
 

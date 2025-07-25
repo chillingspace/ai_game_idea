@@ -34,11 +34,15 @@ public class EnemyController : MonoBehaviour
     public List<Vector2> patrolPoints;
     [HideInInspector]
     public int patrolIndex = 0;
+    public bool showRawPath = true;
+    public bool showPathLine = true;
+    [Range(0.1f, 1.0f)]
+    public float pathLineWidth = 0.1f;
 
     // Visualize path
     public GameObject pathMarkerPrefab; // Assign this prefab in Inspector
     private List<GameObject> spawnedPathMarkers = new List<GameObject>();
-
+    private LineRenderer pathLineRenderer;
 
     private EnemyStateMachine stateMachine;
 
@@ -50,11 +54,30 @@ public class EnemyController : MonoBehaviour
         path = pathfinder.FindPath(transform.position, target.position);
         pathIndex = 0;
         stateMachine = new EnemyStateMachine(this);  // Initialize FSM with reference to this controller
+        SetupLineRenderer();
     }
 
     void Update()
     {
         stateMachine.FSMUpdate(currentState); // Let FSM handle all updates per frame
+    }
+
+    void SetupLineRenderer()
+    {
+        pathLineRenderer = gameObject.GetComponent<LineRenderer>();
+        if (pathLineRenderer == null)
+        {
+            pathLineRenderer = gameObject.AddComponent<LineRenderer>();
+        }
+
+        Material lineMaterial = new Material(Shader.Find("Sprites/Default"));
+        lineMaterial.color = Color.cyan;
+        pathLineRenderer.material = lineMaterial;
+        pathLineRenderer.startWidth = pathLineWidth;
+        pathLineRenderer.endWidth = pathLineWidth;
+        pathLineRenderer.positionCount = 0;
+        pathLineRenderer.useWorldSpace = true;
+        pathLineRenderer.sortingOrder = 1;
     }
 
     public void VisualizePath()
@@ -63,12 +86,37 @@ public class EnemyController : MonoBehaviour
 
         if (path == null) return;
 
-        foreach (Node node in path)
+        if (showRawPath && pathMarkerPrefab != null)
         {
-            Vector2 worldPos = pathfinder.gridManager.GetWorldFromNode(node);
-            GameObject marker = Instantiate(pathMarkerPrefab, worldPos, Quaternion.identity);
-            spawnedPathMarkers.Add(marker);
+            foreach (Node node in path)
+            {
+                Vector2 worldPos = pathfinder.gridManager.GetWorldFromNode(node);
+                GameObject marker = Instantiate(pathMarkerPrefab, worldPos, Quaternion.identity);
+                spawnedPathMarkers.Add(marker);
+            }
         }
+
+        DrawRawPathLine();
+    }
+
+    void DrawRawPathLine()
+    {
+        if (pathLineRenderer == null || path == null || path.Count < 2)
+        {
+            if (pathLineRenderer != null) pathLineRenderer.positionCount = 0;
+            return;
+        }
+
+        Vector3[] positions = new Vector3[path.Count];
+        for (int i = 0; i < path.Count; i++)
+        {
+            Vector2 worldPos = pathfinder.gridManager.GetWorldFromNode(path[i]);
+            positions[i] = new Vector3(worldPos.x, worldPos.y, -0.1f);
+        }
+
+        pathLineRenderer.positionCount = positions.Length;
+        pathLineRenderer.SetPositions(positions);
+        pathLineRenderer.enabled = true;
     }
 
     public void ClearPathMarkers()
