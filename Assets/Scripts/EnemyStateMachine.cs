@@ -127,9 +127,6 @@ public class EnemyStateMachine
         enemy.shootLogic.TryShoot();
     }
 
-
-
-
     public void MeleeAttackUpdate()
     {
         if (enemy.path != null && enemy.pathIndex < enemy.path.Count)
@@ -151,11 +148,13 @@ public class EnemyStateMachine
             if (Vector2.Distance(enemy.transform.position, enemy.target.position) <= enemy.meleeRange)
             {
                 Debug.Log("Perform Melee Attack!");
-                // TODO: Attack logic
+                // Attack logic
+                Vector2 pos = transform.position;
+                Debug.DrawLine(pos, target.position, Color.yellow, 0.3f);
             }
             else
             {
-                // Player moved away — re-evaluate or fallback
+                // Player moved away ï¿½ re-evaluate or fallback
                 enemy.currentState = EnemyState.Chase;
             }
         }

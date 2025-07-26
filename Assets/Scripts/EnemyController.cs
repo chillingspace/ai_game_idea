@@ -13,6 +13,8 @@ public enum EnemyState
 
 public class EnemyController : MonoBehaviour
 {
+    [SerializeField] private GameObject meleeHitboxVisual;
+
     private BTNode behaviorTree;
 
     public Transform target;
@@ -326,6 +328,23 @@ public class EnemyController : MonoBehaviour
             return BTResult.Success;
         })
     });
+    }
+    public void PerformMeleeAttack()
+    {
+        //if (meleeHitboxVisual != null)
+        //{
+        //    meleeHitboxVisual.SetActive(true);
+        //    // Optionally: Deal damage to player here
+        //    Invoke(nameof(HideMeleeVisual), 0.3f);  // Show effect briefly
+        //}
+
+        Vector2 pos = transform.position;
+        Debug.DrawLine(pos, target.position, Color.yellow, 0.3f);
+    }
+
+    private void HideMeleeVisual()
+    {
+        meleeHitboxVisual.SetActive(false);
     }
 
 }
