@@ -87,38 +87,39 @@ public class EnemyStateMachine
     {
         float distanceToPlayer = Vector2.Distance(enemy.transform.position, enemy.target.position);
 
-        // Try melee only if player is somewhat close
+        // Attempt melee if player is close enough
         if (distanceToPlayer <= enemy.meleeRange + 2f)
         {
-            Vector2Int favorableTile = FindFavorableMeleeTile();
-            if (favorableTile != new Vector2Int(-1, -1))
-            {
-                Node favorableTileNode = enemy.pathfinder.gridManager.GetNodeFromGridPos(favorableTile);
-
-                // Transition to melee and set path
-                Vector2 targetWorld = enemy.pathfinder.gridManager.GetWorldFromNode(favorableTileNode);
-                enemy.path = enemy.pathfinder.FindPath(enemy.transform.position, targetWorld);
-                enemy.pathIndex = 0;
-
-                Debug.DrawLine(enemy.transform.position, targetWorld, Color.magenta, 0.2f);
-
-                enemy.currentState = EnemyState.MeleeAttack;
-                return;
-            }
+            // Switch to melee attack...
+            return;
         }
 
-        // Otherwise continue ranged attack logic (or return to chase if out of range)
+        // Face player
+        Vector2 dir = (enemy.target.position - enemy.transform.position).normalized;
+        enemy.transform.up = dir;
+
+        // LOS check
+        if (!enemy.HasLineOfSight(enemy.transform.position, dir,
+            enemy.pathfinder.gridManager.GetNodeFromWorld(enemy.target.position).gridPos))
+        {
+            Debug.Log("RangeAttack: No line of sight, switching to Chase");
+            enemy.currentState = EnemyState.Chase;
+            return;
+        }
+
+        // Distance check
         if (distanceToPlayer > enemy.rangeAttackRange)
         {
             enemy.currentState = EnemyState.Chase;
+            return;
         }
-        else
-        {
-            // Perform ranged attack
-            Debug.Log("Ranged attack!");
-            // TODO: Launch projectile, etc.
-        }
+
+        // Only here is it safe to shoot
+        enemy.shootLogic?.TryShoot();
+        Debug.Log("Ranged attack!");
     }
+
+
 
 
     public void MeleeAttackUpdate()
@@ -145,14 +146,25 @@ public class EnemyStateMachine
 
     private void MoveAlongPath()
     {
+        if (enemy.path == null || enemy.pathIndex >= enemy.path.Count)
+            return;
+
         Vector2 targetPos = enemy.pathfinder.gridManager.GetWorldFromNode(enemy.path[enemy.pathIndex]);
+        Vector2 moveDir = (targetPos - (Vector2)enemy.transform.position).normalized;
+
+        // Face movement direction
+        if (moveDir.sqrMagnitude > 0.01f)
+            enemy.transform.up = moveDir;
+
+        // Move toward target
         enemy.transform.position = Vector2.MoveTowards(enemy.transform.position, targetPos, enemy.moveSpeed * Time.deltaTime);
 
         if (Vector2.Distance(enemy.transform.position, targetPos) < 0.1f)
         {
-            enemy.pathIndex++;  
+            enemy.pathIndex++;
         }
     }
+
 
     public void CheckForPlayer()
     {
@@ -209,12 +221,16 @@ public class EnemyStateMachine
     public void CheckAttackRange()
     {
         float distanceToPlayer = Vector2.Distance(enemy.transform.position, enemy.target.position);
+        Vector2 dir = (enemy.target.position - enemy.transform.position).normalized;
+
+        bool hasLOS = enemy.HasLineOfSight(enemy.transform.position, dir,
+            enemy.pathfinder.gridManager.GetNodeFromWorld(enemy.target.position).gridPos);
 
         if (distanceToPlayer <= enemy.meleeRange)
         {
             enemy.currentState = EnemyState.MeleeAttack;
         }
-        else if (distanceToPlayer <= enemy.rangeAttackRange)
+        else if (distanceToPlayer <= enemy.rangeAttackRange && hasLOS)
         {
             enemy.currentState = EnemyState.RangeAttack;
         }
