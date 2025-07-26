@@ -39,8 +39,8 @@ public class EnemyController : MonoBehaviour
     public List<Vector2> patrolPoints;
     [HideInInspector]
     public int patrolIndex = 0;
-    public bool showRawPath = true;
-    public bool showPathLine = true;
+    public bool showDebugPath= true;
+
     [Range(0.1f, 1.0f)]
     public float pathLineWidth = 0.1f;
 
@@ -55,7 +55,6 @@ public class EnemyController : MonoBehaviour
     {
         currentState = EnemyState.Idle;
 
-        lastPlayerTile = pathfinder.gridManager.GetNodeFromWorld(target.position).gridPos;
         path = pathfinder.FindPath(transform.position, target.position);
         pathIndex = 0;
         stateMachine = new EnemyStateMachine(this);  // Initialize FSM with reference to this controller
@@ -152,7 +151,7 @@ public class EnemyController : MonoBehaviour
 
         if (path == null) return;
 
-        if (showRawPath && pathMarkerPrefab != null)
+        if (showDebugPath && pathMarkerPrefab != null)
         {
             foreach (Node node in path)
             {
@@ -160,9 +159,10 @@ public class EnemyController : MonoBehaviour
                 GameObject marker = Instantiate(pathMarkerPrefab, worldPos, Quaternion.identity);
                 spawnedPathMarkers.Add(marker);
             }
+            DrawRawPathLine();
         }
 
-        DrawRawPathLine();
+
     }
 
     void DrawRawPathLine()
