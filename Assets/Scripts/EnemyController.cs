@@ -24,6 +24,8 @@ public class EnemyController : MonoBehaviour
     public float meleeRange = 1f;
     public float rangeAttackRange = 3f;
 
+    [HideInInspector] public EnemyShootLogic shootLogic;
+
     [HideInInspector]
     public List<Node> path = new List<Node>();
     [HideInInspector]
@@ -68,6 +70,10 @@ public class EnemyController : MonoBehaviour
 
         // Create the behavior tree
         behaviorTree = CreateBehaviorTree();
+
+        shootLogic = GetComponent<EnemyShootLogic>();
+        shootLogic.enemy = this;
+
     }
 
     void Update()
@@ -121,8 +127,7 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-
-    bool HasLineOfSight(Vector2 agentPos, Vector2 agentForward, Vector2Int targetGridPos)
+    public bool HasLineOfSight(Vector2 agentPos, Vector2 agentForward, Vector2Int targetGridPos)
     {
         Vector2 forward = agentForward.normalized;
 
@@ -160,6 +165,8 @@ public class EnemyController : MonoBehaviour
         // Draw green line if clear LOS, else red
         Color lineColor = clearPath ? Color.green : Color.red;
         Debug.DrawLine(agentPos, targetWorld, lineColor, 0.1f);
+
+        Debug.Log($"[LOS] From {agentGrid} to {targetGridPos} - Clear? {clearPath}");
 
         return clearPath;
     }
@@ -286,9 +293,9 @@ public class EnemyController : MonoBehaviour
         new Sequence(new List<BTNode>
         {
             new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= rangeAttackRange),
-            new ConditionNode(() => HasLineOfSight(transform.position, transform.right, pathfinder.gridManager.GetNodeFromWorld(target.position).gridPos)),
+            new ConditionNode(() => HasLineOfSight(transform.position, (target.position - transform.position).normalized, pathfinder.gridManager.GetNodeFromWorld(target.position).gridPos)),
             new ActionNode(() => {
-                Debug.Log("BT: Switching to RangeAttack");
+                //Debug.Log("BT: Switching to RangeAttack");
                 currentState = EnemyState.RangeAttack;
                 return BTResult.Success;
             })
@@ -297,22 +304,23 @@ public class EnemyController : MonoBehaviour
         {
             new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= meleeRange),
             new ActionNode(() => {
-                Debug.Log("BT: Switching to MeleeAttack");
+                //Debug.Log("BT: Switching to MeleeAttack");
                 currentState = EnemyState.MeleeAttack;
                 return BTResult.Success;
             })
+
         }),
         new Sequence(new List<BTNode>
         {
             new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= detectionRadius),
             new ActionNode(() => {
-                Debug.Log("BT: Switching to Chase");
+                //Debug.Log("BT: Switching to Chase");
                 currentState = EnemyState.Chase;
                 return BTResult.Success;
             })
         }),
         new ActionNode(() => {
-            Debug.Log("BT: Switching to Patrol");
+            //Debug.Log("BT: Switching to Patrol");
             currentState = EnemyState.Patrol;
             return BTResult.Success;
         })

@@ -82,9 +82,42 @@ public class EnemyStateMachine
 
     public void RangeAttackUpdate()
     {
-        Debug.Log("Range Attack!");
-        enemy.currentState = EnemyState.Chase;
+        float distanceToPlayer = Vector2.Distance(enemy.transform.position, enemy.target.position);
+
+        // Attempt melee if player is close enough
+        if (distanceToPlayer <= enemy.meleeRange + 2f)
+        {
+            // Switch to melee attack...
+            return;
+        }
+
+        // Face player
+        Vector2 dir = (enemy.target.position - enemy.transform.position).normalized;
+        enemy.transform.up = dir;
+
+        // LOS check
+        if (!enemy.HasLineOfSight(enemy.transform.position, dir,
+            enemy.pathfinder.gridManager.GetNodeFromWorld(enemy.target.position).gridPos))
+        {
+            Debug.Log("RangeAttack: No line of sight, switching to Chase");
+            enemy.currentState = EnemyState.Chase;
+            return;
+        }
+
+        // Distance check
+        if (distanceToPlayer > enemy.rangeAttackRange)
+        {
+            enemy.currentState = EnemyState.Chase;
+            return;
+        }
+
+        // Only here is it safe to shoot
+        enemy.shootLogic?.TryShoot();
+        Debug.Log("Ranged attack!");
     }
+
+
+
 
     public void MeleeAttackUpdate()
     {
@@ -126,8 +159,18 @@ public class EnemyStateMachine
 
     private void MoveAlongPath()
     {
-        Vector3 targetPos = GetCurrentTargetPosition();
-        if (targetPos == enemy.transform.position) return;
+        if (enemy.path == null || enemy.pathIndex >= enemy.path.Count)
+            return;
+
+              Vector3 targetPos = GetCurrentTargetPosition();
+        Vector2 moveDir = (targetPos - (Vector2)enemy.transform.position).normalized;
+
+        // Face movement direction
+        if (moveDir.sqrMagnitude > 0.01f)
+            enemy.transform.up = moveDir;
+
+        // Move toward target
+        enemy.transform.position = Vector2.MoveTowards(enemy.transform.position, targetPos, enemy.moveSpeed * Time.deltaTime);
 
         enemy.transform.position = Vector3.MoveTowards(enemy.transform.position, targetPos, enemy.moveSpeed * Time.deltaTime);
 
@@ -141,6 +184,7 @@ public class EnemyStateMachine
                 enemy.pathIndex++;
         }
     }
+
 
     public void CheckForPlayer()
     {
@@ -157,11 +201,16 @@ public class EnemyStateMachine
     public void CheckAttackRange()
     {
         float distanceToPlayer = Vector2.Distance(enemy.transform.position, enemy.target.position);
+        Vector2 dir = (enemy.target.position - enemy.transform.position).normalized;
+
+        bool hasLOS = enemy.HasLineOfSight(enemy.transform.position, dir,
+            enemy.pathfinder.gridManager.GetNodeFromWorld(enemy.target.position).gridPos);
+
         if (distanceToPlayer <= enemy.meleeRange)
         {
             enemy.currentState = EnemyState.MeleeAttack;
         }
-        else if (distanceToPlayer <= enemy.rangeAttackRange)
+        else if (distanceToPlayer <= enemy.rangeAttackRange && hasLOS)
         {
             enemy.currentState = EnemyState.RangeAttack;
         }
