@@ -238,10 +238,9 @@ public class EnemyStateMachine
 
         return bestTile;
     }
-
-
     private void MoveAlongPath()
     {
+        // Apply local avoidance via separation
         Vector2 separationForce = Vector2.zero;
         float separationRadius = 0.5f;
         float pushStrength = 0.05f;
@@ -257,7 +256,8 @@ public class EnemyStateMachine
                 separationForce += pushDir * pushAmount;
             }
         }
-        // Choose path and index based on smoothing
+
+        // Choose path and index
         List<Vector3> currentPath = null;
         int index = 0;
 
@@ -271,12 +271,12 @@ public class EnemyStateMachine
             if (enemy.path == null || enemy.pathIndex >= enemy.path.Count)
                 return;
 
-            // Convert enemy.path (Node list) to world positions
+            // Convert remaining node path to world positions
             currentPath = new List<Vector3>();
             for (int i = enemy.pathIndex; i < enemy.path.Count; i++)
             {
-                Vector2 pos2D = enemy.pathfinder.gridManager.GetWorldFromNode(enemy.path[i]);
-                currentPath.Add(new Vector3(pos2D.x, pos2D.y, enemy.transform.position.z));
+                Vector2 worldPos = enemy.pathfinder.gridManager.GetWorldFromNode(enemy.path[i]);
+                currentPath.Add(new Vector3(worldPos.x, worldPos.y, enemy.transform.position.z));
             }
 
             index = 0;
@@ -287,14 +287,20 @@ public class EnemyStateMachine
 
         Vector3 targetPos = currentPath[index];
         Vector3 currentPos = enemy.transform.position;
+
         Vector2 moveDir = (targetPos - currentPos).normalized;
+        Vector2 finalDir = moveDir + separationForce;
+        finalDir = finalDir.normalized;
 
         // Face movement direction
-        if (moveDir.sqrMagnitude > 0.01f)
-            enemy.transform.up = moveDir;
+        if (finalDir.sqrMagnitude > 0.01f)
+            enemy.transform.up = finalDir;
 
-        // Move toward target
-        enemy.transform.position = Vector3.MoveTowards(currentPos, targetPos, enemy.moveSpeed * Time.deltaTime);
+        // Move enemy
+        enemy.transform.position = Vector3.MoveTowards(currentPos, currentPos + (Vector3)finalDir, enemy.moveSpeed * Time.deltaTime);
+
+        // Prevent overlapping after movement
+        PreventOverlapWithOtherEnemies();
 
         // Advance to next point if close enough
         float tolerance = enemy.useSplineSmoothing ? 0.05f : 0.1f;
@@ -306,8 +312,6 @@ public class EnemyStateMachine
                 enemy.pathIndex++;
         }
     }
-
-
 
     public void CheckForPlayer()
     {
