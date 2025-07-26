@@ -53,7 +53,6 @@ public class EnemyController : MonoBehaviour
     {
         currentState = EnemyState.Idle;
 
-        lastPlayerTile = pathfinder.gridManager.GetNodeFromWorld(target.position).gridPos;
         path = pathfinder.FindPath(transform.position, target.position);
         pathIndex = 0;
         stateMachine = new EnemyStateMachine(this);  // Initialize FSM with reference to this controller
@@ -69,7 +68,7 @@ public class EnemyController : MonoBehaviour
         behaviorTree?.Tick();
 
         // FSM handle execution of goal
-        stateMachine.FSMUpdate(currentState); // Let FSM handle all updates per frame
+        stateMachine.FSMUpdate(currentState); 
     }
 
     void SetupLineRenderer()
@@ -89,6 +88,54 @@ public class EnemyController : MonoBehaviour
         pathLineRenderer.useWorldSpace = true;
         pathLineRenderer.sortingOrder = 1;
     }
+
+    bool HasLineOfSight(Vector2 agentPos, Vector2 agentForward, Vector2Int targetGridPos)
+    {
+        Vector2 forward = agentForward.normalized;
+
+        Node targetNode = pathfinder.gridManager.GetNodeFromGridPos(targetGridPos);
+
+        // Get target node world position as Vector2
+        Vector2 targetWorld = pathfinder.gridManager.GetWorldFromNode(targetNode);
+
+        Vector2 toTarget = targetWorld - agentPos;
+
+        if (toTarget.magnitude == 0f)
+        {
+            // Draw a green dot if agent is on the target cell
+            Debug.DrawLine(agentPos, agentPos + forward * 0.1f, Color.green, 0.1f);
+            return true;
+        }
+
+        toTarget.Normalize();
+
+        float fovDeg = 190.5f;
+        float cosThreshold = Mathf.Cos(fovDeg * 0.5f * Mathf.Deg2Rad);
+
+        float dot = Vector2.Dot(forward, toTarget);
+        if (dot < cosThreshold)
+        {
+            // Draw red line indicating target outside FOV
+            Debug.DrawLine(agentPos, targetWorld, Color.red, 0.1f);
+            return false;
+        }
+
+        Vector2Int agentGrid = pathfinder.gridManager.GetNodeFromWorld(agentPos).gridPos;
+
+        bool clearPath = pathfinder.gridManager.IsClearPath(agentGrid, targetGridPos);
+
+        // Draw green line if clear LOS, else red
+        Color lineColor = clearPath ? Color.green : Color.red;
+        Debug.DrawLine(agentPos, targetWorld, lineColor, 0.1f);
+
+        return clearPath;
+    }
+
+
+
+    /*
+     * DRAWING AND VISLISUALISATION STUFF
+     */
 
     public void VisualizePath()
     {
@@ -146,19 +193,20 @@ public class EnemyController : MonoBehaviour
     {
         new Sequence(new List<BTNode>
         {
-            new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= meleeRange),
+            new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= rangeAttackRange),
+            new ConditionNode(() => HasLineOfSight(transform.position, transform.right, pathfinder.gridManager.GetNodeFromWorld(target.position).gridPos)),
             new ActionNode(() => {
-                Debug.Log("BT: Switching to MeleeAttack");
-                currentState = EnemyState.MeleeAttack;
+                Debug.Log("BT: Switching to RangeAttack");
+                currentState = EnemyState.RangeAttack;
                 return BTResult.Success;
             })
         }),
         new Sequence(new List<BTNode>
         {
-            new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= rangeAttackRange),
+            new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= meleeRange),
             new ActionNode(() => {
-                Debug.Log("BT: Switching to RangeAttack");
-                currentState = EnemyState.RangeAttack;
+                Debug.Log("BT: Switching to MeleeAttack");
+                currentState = EnemyState.MeleeAttack;
                 return BTResult.Success;
             })
         }),

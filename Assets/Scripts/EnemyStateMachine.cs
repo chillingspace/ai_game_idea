@@ -17,6 +17,7 @@ public class EnemyStateMachine
             case EnemyState.Patrol:
                 PatrolUpdate();
                 CheckForPlayer();
+                CheckAttackRange();
                 break;
 
             case EnemyState.Chase:
@@ -84,14 +85,45 @@ public class EnemyStateMachine
 
     public void RangeAttackUpdate()
     {
-        Debug.Log("Range Attack!");
-        enemy.currentState = EnemyState.Chase;
+        float distanceToPlayer = Vector2.Distance(enemy.transform.position, enemy.target.position);
+
+        // Try melee only if player is somewhat close
+        if (distanceToPlayer <= enemy.meleeRange + 2f)
+        {
+            Vector2Int favorableTile = FindFavorableMeleeTile();
+            if (favorableTile != new Vector2Int(-1, -1))
+            {
+                Node favorableTileNode = enemy.pathfinder.gridManager.GetNodeFromGridPos(favorableTile);
+
+                // Transition to melee and set path
+                Vector2 targetWorld = enemy.pathfinder.gridManager.GetWorldFromNode(favorableTileNode);
+                enemy.path = enemy.pathfinder.FindPath(enemy.transform.position, targetWorld);
+                enemy.pathIndex = 0;
+
+                Debug.DrawLine(enemy.transform.position, targetWorld, Color.magenta, 0.2f);
+
+                enemy.currentState = EnemyState.MeleeAttack;
+                return;
+            }
+        }
+
+        // Otherwise continue ranged attack logic (or return to chase if out of range)
+        if (distanceToPlayer > enemy.rangeAttackRange)
+        {
+            enemy.currentState = EnemyState.Chase;
+        }
+        else
+        {
+            // Perform ranged attack
+            Debug.Log("Ranged attack!");
+            // TODO: Launch projectile, etc.
+        }
     }
+
 
     public void MeleeAttackUpdate()
     {
         Debug.Log("Melee Attack!");
-        enemy.currentState = EnemyState.Chase;
     }
 
     public void IdleUpdate()
@@ -134,9 +166,50 @@ public class EnemyStateMachine
         }
     }
 
+    private Vector2Int FindFavorableMeleeTile()
+    {
+        Vector2Int playerGridPos = enemy.pathfinder.gridManager.GetNodeFromWorld(enemy.target.position).gridPos;
+
+        // Directions around the player: up, down, left, right
+        Vector2Int[] directions = {
+        Vector2Int.up,
+        Vector2Int.down,
+        Vector2Int.left,
+        Vector2Int.right
+        };
+
+        foreach (Vector2Int dir in directions)
+        {
+            Vector2Int checkPos = playerGridPos + dir;
+
+            Node checkPosNode = enemy.pathfinder.gridManager.GetNodeFromGridPos(checkPos);
+
+            if (!enemy.pathfinder.gridManager.IsValidGridPos(checkPos)) continue;
+            if (!enemy.pathfinder.gridManager.IsWalkable(checkPos)) continue;
+
+            var path = enemy.pathfinder.FindPath(enemy.transform.position,
+                enemy.pathfinder.gridManager.GetWorldFromNode(checkPosNode));
+
+            if (path != null && path.Count > 0)
+            {
+                // Visualize it
+                Vector2 world = enemy.pathfinder.gridManager.GetWorldFromNode(checkPosNode);
+                Debug.DrawLine(world, world + Vector2.up * 0.5f, Color.magenta, 0.5f);
+
+                return checkPos;
+            }
+        }
+
+        // No valid adjacent tile found
+        return new Vector2Int(-1, -1);
+    }
+
+
+
     public void CheckAttackRange()
     {
         float distanceToPlayer = Vector2.Distance(enemy.transform.position, enemy.target.position);
+
         if (distanceToPlayer <= enemy.meleeRange)
         {
             enemy.currentState = EnemyState.MeleeAttack;
@@ -145,5 +218,11 @@ public class EnemyStateMachine
         {
             enemy.currentState = EnemyState.RangeAttack;
         }
+        else
+        {
+            enemy.currentState = EnemyState.Chase;
+        }
     }
+
+
 }
