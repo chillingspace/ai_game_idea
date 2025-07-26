@@ -160,7 +160,7 @@ public class EnemyStateMachine
     private void MoveAlongPath()
     {
         // Choose appropriate path based on smoothing toggle
-        List<Vector3> currentPath = enemy.useSplineSmoothing ? enemy.smoothedPath : enemy.pathfinder.gridManager.GetWorldFromNode(enemy.path[enemy.pathIndex]);
+        List<Vector3> currentPath = enemy.useSplineSmoothing ? enemy.smoothedPath : new List<Vector3> { enemy.pathfinder.gridManager.GetWorldFromNode(enemy.path[enemy.pathIndex]) };
         int index = enemy.useSplineSmoothing ? enemy.smoothedPathIndex : enemy.pathIndex;
 
         // Early exit if no valid path
