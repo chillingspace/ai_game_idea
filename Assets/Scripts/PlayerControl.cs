@@ -41,6 +41,7 @@ public class PlayerControl : MonoBehaviour
     {
         Vector2 newPosition = rb2D.position + moveInput * moveSpeed * Time.fixedDeltaTime;
         rb2D.MovePosition(newPosition);
+
         if (moveInput.sqrMagnitude > 0.01f)
         {
             float targetAngle = Mathf.Atan2(moveInput.y, moveInput.x) * Mathf.Rad2Deg - 90f;
