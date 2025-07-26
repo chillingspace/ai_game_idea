@@ -23,11 +23,39 @@ public class PlayerControl : MonoBehaviour
 
         moveInput = new Vector2(inputX, inputY).normalized;
 
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            ToggleEnemyPathDebug();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            ToggleEnemySmoothing();
+        }
     }
 
     void FixedUpdate()
     {
         rb2D.MovePosition(rb2D.position + moveInput * moveSpeed * Time.fixedDeltaTime);
+    }
+
+    private void ToggleEnemyPathDebug()
+    {
+        var enemies = FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
+        foreach (var enemy in enemies)
+        {
+            enemy.showDebugPath = !enemy.showDebugPath;
+            enemy.VisualizePath();
+        }
+    }
+
+    private void ToggleEnemySmoothing()
+    {
+        var enemies = FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
+        foreach (var enemy in enemies)
+        {
+            enemy.useSplineSmoothing = !enemy.useSplineSmoothing;
+        }
     }
 
     private IEnumerator Move(Vector2 direction)

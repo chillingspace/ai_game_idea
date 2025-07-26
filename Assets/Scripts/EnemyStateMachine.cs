@@ -242,12 +242,30 @@ public class EnemyStateMachine
 
     private void MoveAlongPath()
     {
-        // Choose appropriate path based on smoothing toggle
-        List<Vector3> currentPath = enemy.useSplineSmoothing ? enemy.smoothedPath : 
-            new List<Vector3> { enemy.pathfinder.gridManager.GetWorldFromNode(enemy.path[enemy.pathIndex]) };
-        int index = enemy.useSplineSmoothing ? enemy.smoothedPathIndex : enemy.pathIndex;
+        // Choose path and index based on smoothing
+        List<Vector3> currentPath = null;
+        int index = 0;
+        if (enemy.useSplineSmoothing)
+        {
+            currentPath = enemy.smoothedPath;
+            index = enemy.smoothedPathIndex;
+        }
+        else
+        {
+            if (enemy.path == null || enemy.pathIndex >= enemy.path.Count)
+                return;
 
-        // Early exit if no valid path
+            // Convert enemy.path (Node list) to world positions
+            currentPath = new List<Vector3>();
+            for (int i = enemy.pathIndex; i < enemy.path.Count; i++)
+            {
+                Vector2 pos2D = enemy.pathfinder.gridManager.GetWorldFromNode(enemy.path[i]);
+                currentPath.Add(new Vector3(pos2D.x, pos2D.y, enemy.transform.position.z));
+            }
+
+            index = 0;
+        }
+
         if (currentPath == null || index >= currentPath.Count)
             return;
 

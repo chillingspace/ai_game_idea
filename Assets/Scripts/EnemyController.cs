@@ -49,7 +49,7 @@ public class EnemyController : MonoBehaviour
     public List<Vector2> patrolPoints;
     [HideInInspector]
     public int patrolIndex = 0;
-    public bool showDebugPath= true;
+    public bool showDebugPath = true;
 
     [Range(0.05f, 1.0f)]
     public float pathLineWidth = 0.05f;
@@ -104,7 +104,7 @@ public class EnemyController : MonoBehaviour
         }
 
         Material PathlineMaterial = new Material(Shader.Find("Sprites/Default"));
-        PathlineMaterial.color = Color.purple;
+        PathlineMaterial.color = Color.cyan;
         pathLineRenderer.material = PathlineMaterial;
         pathLineRenderer.startWidth = pathLineWidth;
         pathLineRenderer.endWidth = pathLineWidth;
@@ -273,15 +273,15 @@ public class EnemyController : MonoBehaviour
                 GameObject marker = Instantiate(pathMarkerPrefab, worldPos, Quaternion.identity);
                 spawnedPathMarkers.Add(marker);
             }
-            DrawRawPathLine();
-        }
 
+        }
+        DrawRawPathLine();
 
     }
 
     void DrawRawPathLine()
     {
-        if (pathLineRenderer == null || path == null || path.Count < 2)
+        if (!showDebugPath || pathLineRenderer == null || path == null || path.Count < 2)
         {
             if (pathLineRenderer != null) pathLineRenderer.positionCount = 0;
             return;
