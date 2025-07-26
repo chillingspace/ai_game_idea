@@ -79,10 +79,13 @@ public class EnemyController : MonoBehaviour
     void Update()
     {
         // Run the behavior tree to set current goal
-        behaviorTree?.Tick();
+        if (currentState == EnemyState.Idle || currentState == EnemyState.Patrol)
+            // Only evaluate new goals when idle/patrolling, issue was behavior tree keeps resetting 
+            // state 
+            behaviorTree.Tick(); 
 
         // FSM handle execution of goal
-        stateMachine.FSMUpdate(currentState); 
+        stateMachine.FSMUpdate(); 
     }
 
     void SetupLineRenderer()
@@ -165,8 +168,6 @@ public class EnemyController : MonoBehaviour
         // Draw green line if clear LOS, else red
         Color lineColor = clearPath ? Color.green : Color.red;
         Debug.DrawLine(agentPos, targetWorld, lineColor, 0.1f);
-
-        Debug.Log($"[LOS] From {agentGrid} to {targetGridPos} - Clear? {clearPath}");
 
         return clearPath;
     }

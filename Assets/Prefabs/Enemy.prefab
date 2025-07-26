@@ -117,7 +117,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!58 &6617588164801889691
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -174,13 +174,15 @@ MonoBehaviour:
   rangeAttackRange: 6
   shootLogic: {fileID: 0}
   pathIndex: 0
+  smoothedPath: []
+  smoothedPathIndex: 0
   lastPlayerTile: {x: 0, y: 0}
   currentState: 0
   patrolPoints: []
   patrolIndex: 0
-  showRawPath: 1
-  showPathLine: 1
+  showDebugPath: 1
   pathLineWidth: 0.1
+  useSplineSmoothing: 1
   pathMarkerPrefab: {fileID: 0}
 --- !u!114 &2971157624167090944
 MonoBehaviour:
@@ -201,3 +203,4 @@ MonoBehaviour:
   BulletSpeed: 10
   ShotgunBullets: 3
   ShotgunAngle: 0.2
+  enemy: {fileID: 0}

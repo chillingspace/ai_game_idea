@@ -22,17 +22,10 @@ public class EnemyShootLogic : MonoBehaviour
 
     public void TryShoot()
     {
-
-        Debug.Log("TryShoot called from state: " + enemy.currentState);
-
-
-
         Timer += Time.deltaTime;
-        Debug.Log($"TryShoot running. Timer: {Timer:F2}, Cooldown: {ShootCooldown}");
 
         if (Timer >= ShootCooldown)
         {
-            Debug.Log("TryShoot cooldown met, calling Fire()");
             Fire();
             Timer = 0f;
         }

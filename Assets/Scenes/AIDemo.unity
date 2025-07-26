@@ -327,7 +327,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6592540510716653073, guid: 31d324c86a1c4504993b21f2878abb3f, type: 3}
       propertyPath: detectionRadius
-      value: 20
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 6592540510716653073, guid: 31d324c86a1c4504993b21f2878abb3f, type: 3}
       propertyPath: pathMarkerPrefab
