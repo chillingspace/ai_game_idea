@@ -333,6 +333,10 @@ PrefabInstance:
       propertyPath: pathMarkerPrefab
       value: 
       objectReference: {fileID: 4169191456363831974, guid: 39096ab546cedb14180bc04177e113f3, type: 3}
+    - target: {fileID: 6592540510716653073, guid: 31d324c86a1c4504993b21f2878abb3f, type: 3}
+      propertyPath: meleeAttackEffect
+      value: 
+      objectReference: {fileID: 3499704433885653709, guid: b635be80a14a7bf44ae22208aa1ac804, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -558,7 +562,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d178e1187937d2a499ad2edde737f6d4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

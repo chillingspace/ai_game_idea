@@ -13,7 +13,8 @@ public enum EnemyState
 
 public class EnemyController : MonoBehaviour
 {
-    [SerializeField] private GameObject meleeHitboxVisual;
+    //[SerializeField] private GameObject meleeHitboxVisual;
+    public GameObject meleeAttackEffect; // Assign in inspector
 
     private BTNode behaviorTree;
 
@@ -331,20 +332,20 @@ public class EnemyController : MonoBehaviour
     }
     public void PerformMeleeAttack()
     {
-        //if (meleeHitboxVisual != null)
-        //{
-        //    meleeHitboxVisual.SetActive(true);
-        //    // Optionally: Deal damage to player here
-        //    Invoke(nameof(HideMeleeVisual), 0.3f);  // Show effect briefly
-        //}
+        if (meleeAttackEffect != null)
+        {
+            Vector2 spawnPos = (Vector2)transform.position + (Vector2)transform.up * 0.5f;
 
-        Vector2 pos = transform.position;
-        Debug.DrawLine(pos, target.position, Color.yellow, 0.3f);
-    }
+            // Correct rotation based on direction enemy is facing
+            float angle = Mathf.Atan2(transform.up.y, transform.up.x) * Mathf.Rad2Deg;
+            Quaternion rotation = Quaternion.Euler(0, 0, angle);
 
-    private void HideMeleeVisual()
-    {
-        meleeHitboxVisual.SetActive(false);
+            GameObject effect = Instantiate(meleeAttackEffect, spawnPos, rotation);
+
+            Destroy(effect, 0.3f);
+        }
+
+        // Optionally: deal damage to player here
     }
 
 }

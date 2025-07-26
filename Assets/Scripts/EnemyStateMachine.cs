@@ -148,13 +148,17 @@ public class EnemyStateMachine
             if (Vector2.Distance(enemy.transform.position, enemy.target.position) <= enemy.meleeRange)
             {
                 Debug.Log("Perform Melee Attack!");
-                // Attack logic
-                Vector2 pos = transform.position;
-                Debug.DrawLine(pos, target.position, Color.yellow, 0.3f);
+
+                // Face Player
+                Vector2 dir = (enemy.target.position - enemy.transform.position).normalized;
+                enemy.transform.up = dir;
+                enemy.PerformMeleeAttack();
+
+                enemy.PerformMeleeAttack();  // ← Call it here
             }
             else
             {
-                // Player moved away � re-evaluate or fallback
+                // Player moved away, re-evaluate or fallback
                 enemy.currentState = EnemyState.Chase;
             }
         }
