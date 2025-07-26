@@ -29,6 +29,13 @@ public class EnemyController : MonoBehaviour
     [HideInInspector]
     public int pathIndex;
     [HideInInspector]
+    public List<Vector3> smoothedPath = new List<Vector3>();
+
+    [HideInInspector]
+    public int smoothedPathIndex = 0;
+
+
+    [HideInInspector]
     public Vector2Int lastPlayerTile;
     public EnemyState currentState;
 
@@ -43,6 +50,7 @@ public class EnemyController : MonoBehaviour
     public float pathLineWidth = 0.1f;
 
     // Visualize path
+    public bool useSplineSmoothing = true;
     public GameObject pathMarkerPrefab; // Assign this prefab in Inspector
     private List<GameObject> spawnedPathMarkers = new List<GameObject>();
     private LineRenderer pathLineRenderer;
@@ -89,6 +97,31 @@ public class EnemyController : MonoBehaviour
         pathLineRenderer.sortingOrder = 1;
     }
 
+    public void SetPath(List<Node> newPath)
+    {
+        path = newPath;
+        pathIndex = 0;
+        smoothedPathIndex = 0;
+
+        if (useSplineSmoothing && path != null && path.Count >= 2)
+        {
+
+            List<Vector3> rawPoints = new List<Vector3>();
+            foreach (var node in path)
+            {
+                Vector2 worldPos = pathfinder.gridManager.GetWorldFromNode(node);
+                rawPoints.Add(new Vector3(worldPos.x, worldPos.y, transform.position.z));
+            }
+
+            smoothedPath = CatmullRomSpline(rawPoints, 10);
+        }
+        else
+        {
+            smoothedPath = null; // no smoothing
+        }
+    }
+
+
     bool HasLineOfSight(Vector2 agentPos, Vector2 agentForward, Vector2Int targetGridPos)
     {
         Vector2 forward = agentForward.normalized;
@@ -132,6 +165,54 @@ public class EnemyController : MonoBehaviour
     }
 
 
+    /*
+     * CATMUL-ROM SMOOTHING 
+     */
+
+    public List<Vector3> CatmullRomSpline(List<Vector3> rawPoints, int samplesPerSegment = 10)
+    {
+        List<Vector3> smoothPoints = new List<Vector3>();
+
+        if (rawPoints == null || rawPoints.Count < 2)
+            return rawPoints;  // Not enough points to smooth
+
+        // Pad points for spline (duplicate first and last points)
+        List<Vector3> paddedPoints = new List<Vector3>();
+        paddedPoints.Add(rawPoints[0]);  // p0
+        paddedPoints.AddRange(rawPoints);
+        paddedPoints.Add(rawPoints[rawPoints.Count - 1]);  // pn+1
+
+        // Iterate over each segment
+        for (int i = 0; i < paddedPoints.Count - 3; i++)
+        {
+            Vector3 p0 = paddedPoints[i];
+            Vector3 p1 = paddedPoints[i + 1];
+            Vector3 p2 = paddedPoints[i + 2];
+            Vector3 p3 = paddedPoints[i + 3];
+
+            // Sample points on this segment
+            for (int j = 0; j < samplesPerSegment; j++)
+            {
+                float t = j / (float)samplesPerSegment;
+                Vector3 point = CatmullRom(p0, p1, p2, p3, t);
+                smoothPoints.Add(point);
+            }
+        }
+
+        return smoothPoints;
+    }
+
+    // Catmull-Rom interpolation between 4 points for parameter t in [0,1]
+    public Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+    {
+        // Catmull-Rom spline formula
+        return 0.5f * (
+            (2f * p1) +
+            (-p0 + p2) * t +
+            (2f * p0 - 5f * p1 + 4f * p2 - p3) * t * t +
+            (-p0 + 3f * p1 - 3f * p2 + p3) * t * t * t
+        );
+    }
 
     /*
      * DRAWING AND VISLISUALISATION STUFF
@@ -165,17 +246,28 @@ public class EnemyController : MonoBehaviour
             return;
         }
 
-        Vector3[] positions = new Vector3[path.Count];
+        List<Vector3> rawPoints = new List<Vector3>();
         for (int i = 0; i < path.Count; i++)
         {
             Vector2 worldPos = pathfinder.gridManager.GetWorldFromNode(path[i]);
-            positions[i] = new Vector3(worldPos.x, worldPos.y, -0.1f);
+            rawPoints.Add(new Vector3(worldPos.x, worldPos.y, -0.1f));
         }
 
-        pathLineRenderer.positionCount = positions.Length;
-        pathLineRenderer.SetPositions(positions);
+        if (!useSplineSmoothing || rawPoints.Count < 2)
+        {
+            pathLineRenderer.positionCount = rawPoints.Count;
+            pathLineRenderer.SetPositions(rawPoints.ToArray());
+            pathLineRenderer.enabled = true;
+            return;
+        }
+
+        List<Vector3> smoothPoints = CatmullRomSpline(rawPoints, 10);
+
+        pathLineRenderer.positionCount = smoothPoints.Count;
+        pathLineRenderer.SetPositions(smoothPoints.ToArray());
         pathLineRenderer.enabled = true;
     }
+
 
     public void ClearPathMarkers()
     {
