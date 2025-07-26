@@ -170,7 +170,7 @@ MonoBehaviour:
   moveSpeed: 3
   detectionRadius: 7
   meleeRange: 1
-  rangeAttackRange: 3
+  rangeAttackRange: 6
   pathIndex: 0
   lastPlayerTile: {x: 0, y: 0}
   currentState: 0

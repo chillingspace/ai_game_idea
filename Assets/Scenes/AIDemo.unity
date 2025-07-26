@@ -385,7 +385,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3577998229054386596, guid: 0c835aa677c4aac44ac7b7a4276ac7bb, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5.5
+      value: -4.5
       objectReference: {fileID: 0}
     - target: {fileID: 3577998229054386596, guid: 0c835aa677c4aac44ac7b7a4276ac7bb, type: 3}
       propertyPath: m_LocalPosition.y
@@ -600,7 +600,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.5
+  m_Radius: 0.49
 --- !u!1001 &450149503
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -965,7 +965,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3577998229054386596, guid: c742cbad1d3e9b14fbafdfe1328c74ea, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.50000167
+      value: -0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3577998229054386596, guid: c742cbad1d3e9b14fbafdfe1328c74ea, type: 3}
       propertyPath: m_LocalPosition.y
