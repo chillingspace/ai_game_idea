@@ -159,24 +159,28 @@ public class EnemyStateMachine
 
     private void MoveAlongPath()
     {
-        if (enemy.path == null || enemy.pathIndex >= enemy.path.Count)
+        // Choose appropriate path based on smoothing toggle
+        List<Vector3> currentPath = enemy.useSplineSmoothing ? enemy.smoothedPath : enemy.pathfinder.gridManager.GetWorldFromNode(enemy.path[enemy.pathIndex]);
+        int index = enemy.useSplineSmoothing ? enemy.smoothedPathIndex : enemy.pathIndex;
+
+        // Early exit if no valid path
+        if (currentPath == null || index >= currentPath.Count)
             return;
 
-              Vector3 targetPos = GetCurrentTargetPosition();
-        Vector2 moveDir = (targetPos - (Vector2)enemy.transform.position).normalized;
+        Vector3 targetPos = currentPath[index];
+        Vector3 currentPos = enemy.transform.position;
+        Vector2 moveDir = (targetPos - currentPos).normalized;
 
         // Face movement direction
         if (moveDir.sqrMagnitude > 0.01f)
             enemy.transform.up = moveDir;
 
         // Move toward target
-        enemy.transform.position = Vector2.MoveTowards(enemy.transform.position, targetPos, enemy.moveSpeed * Time.deltaTime);
+        enemy.transform.position = Vector3.MoveTowards(currentPos, targetPos, enemy.moveSpeed * Time.deltaTime);
 
-        enemy.transform.position = Vector3.MoveTowards(enemy.transform.position, targetPos, enemy.moveSpeed * Time.deltaTime);
-
+        // Advance to next point if close enough
         float tolerance = enemy.useSplineSmoothing ? 0.05f : 0.1f;
-
-        if (Vector3.Distance(enemy.transform.position, targetPos) < tolerance)
+        if (Vector3.Distance(currentPos, targetPos) < tolerance)
         {
             if (enemy.useSplineSmoothing)
                 enemy.smoothedPathIndex++;
@@ -184,6 +188,7 @@ public class EnemyStateMachine
                 enemy.pathIndex++;
         }
     }
+
 
 
     public void CheckForPlayer()
