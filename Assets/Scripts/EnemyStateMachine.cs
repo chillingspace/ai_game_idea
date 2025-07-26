@@ -147,14 +147,16 @@ public class EnemyStateMachine
             // Arrived at melee position, attack if in range
             if (Vector2.Distance(enemy.transform.position, enemy.target.position) <= enemy.meleeRange)
             {
-                Debug.Log("Perform Melee Attack!");
 
                 // Face Player
                 Vector2 dir = (enemy.target.position - enemy.transform.position).normalized;
                 enemy.transform.up = dir;
-                enemy.PerformMeleeAttack();
 
-                enemy.PerformMeleeAttack();  // ← Call it here
+                if (Time.time - enemy.lastMeleeAttackTime >= enemy.meleeAttackCooldown)
+                {
+                    enemy.PerformMeleeAttack();
+                    enemy.lastMeleeAttackTime = Time.time;
+                }
             }
             else
             {

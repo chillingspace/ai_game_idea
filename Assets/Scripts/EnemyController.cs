@@ -28,8 +28,11 @@ public class EnemyController : MonoBehaviour
 
     // For enemy attacks
     public float detectionRadius = 5f;
-    public float meleeRange = 1f;
     public float rangeAttackRange = 3f;
+    public float meleeRange = 1f;
+    public float meleeAttackCooldown = 1f;
+    public float lastMeleeAttackTime = -Mathf.Infinity;
+
 
     [HideInInspector] public EnemyShootLogic shootLogic;
 
@@ -371,22 +374,24 @@ public class EnemyController : MonoBehaviour
         })
     });
     }
+
     public void PerformMeleeAttack()
     {
         if (meleeAttackEffect != null)
         {
+            Debug.Log("Perform Melee Attack!");
             Vector2 spawnPos = (Vector2)transform.position + (Vector2)transform.up * 0.5f;
-
-            // Correct rotation based on direction enemy is facing
             float angle = Mathf.Atan2(transform.up.y, transform.up.x) * Mathf.Rad2Deg;
             Quaternion rotation = Quaternion.Euler(0, 0, angle);
 
             GameObject effect = Instantiate(meleeAttackEffect, spawnPos, rotation);
 
-            Destroy(effect, 0.3f);
+            SlashEffect slash = effect.GetComponent<SlashEffect>();
+            if (slash != null)
+            {
+                slash.BeginFadeAndDestroy(); // start coroutine *after* setting values
+            }
         }
-
-        // Optionally: deal damage to player here
     }
 
 }
