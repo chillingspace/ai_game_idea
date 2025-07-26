@@ -114,12 +114,9 @@ public class GridManager : MonoBehaviour
         return pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height;
     }
 
-    public bool IsClearPath(Vector2Int from, Vector2Int to)
+    public bool IsClearPath(Vector2 fromWorld, Vector2 toWorld)
     {
-        float puff = 0.003f;
-
-        Vector2 p1 = new Vector2(from.x + 0.5f, from.y + 0.5f);
-        Vector2 p2 = new Vector2(to.x + 0.5f, to.y + 0.5f);
+        float puff = 0.1f;
 
         for (int row = 0; row < height; ++row)
         {
@@ -129,10 +126,10 @@ public class GridManager : MonoBehaviour
                 if (IsWalkable(gridCords))
                     continue;
 
-                float left = col - puff;
-                float right = col + 1f + puff;
-                float top = row - puff;
-                float bottom = row + 1f + puff;
+                float left = col * cellSize - puff - width * cellSize / 2f;
+                float right = (col + 1f) * cellSize + puff - width * cellSize / 2f;
+                float top = row * cellSize - puff - height * cellSize / 2f;
+                float bottom = (row + 1f) * cellSize + puff - height * cellSize / 2f;
 
                 Vector2 topLeft = new Vector2(left, top);
                 Vector2 topRight = new Vector2(right, top);
@@ -140,10 +137,10 @@ public class GridManager : MonoBehaviour
                 Vector2 botLeft = new Vector2(left, bottom);
 
                 if (
-                    LineIntersect(p1, p2, topLeft, topRight) ||
-                    LineIntersect(p1, p2, topRight, botRight) ||
-                    LineIntersect(p1, p2, botRight, botLeft) ||
-                    LineIntersect(p1, p2, botLeft, topLeft))
+                    LineIntersect(fromWorld, toWorld, topLeft, topRight) ||
+                    LineIntersect(fromWorld, toWorld, topRight, botRight) ||
+                    LineIntersect(fromWorld, toWorld, botRight, botLeft) ||
+                    LineIntersect(fromWorld, toWorld, botLeft, topLeft))
                 {
                     return false;
                 }
@@ -152,6 +149,7 @@ public class GridManager : MonoBehaviour
 
         return true;
     }
+
 
 
     bool LineIntersect(Vector2 p0, Vector2 p1, Vector2 q0, Vector2 q1)

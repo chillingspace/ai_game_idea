@@ -19,7 +19,7 @@ public class EnemyController : MonoBehaviour
     //private Rigidbody2D rb2D;
     [HideInInspector] public Rigidbody2D rb2D;
 
-
+    private Transform player;
     private BTNode behaviorTree;
 
     public Transform target;
@@ -71,6 +71,10 @@ public class EnemyController : MonoBehaviour
 
     void Start()
     {
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj != null)
+            player = playerObj.transform;
+
         currentState = EnemyState.Idle;
 
         path = pathfinder.FindPath(transform.position, target.position);
@@ -165,7 +169,7 @@ public class EnemyController : MonoBehaviour
 
         Node targetNode = pathfinder.gridManager.GetNodeFromGridPos(targetGridPos);
 
-        Vector2 targetWorld = pathfinder.gridManager.GetWorldFromNode(targetNode);
+        Vector2 targetWorld = player.transform.position;
 
         Vector2 toTarget = targetWorld - agentPos;
 
@@ -191,7 +195,7 @@ public class EnemyController : MonoBehaviour
 
         Vector2Int agentGrid = pathfinder.gridManager.GetNodeFromWorld(agentPos).gridPos;
 
-        bool clearPath = pathfinder.gridManager.IsClearPath(agentGrid, targetGridPos);
+        bool clearPath = pathfinder.gridManager.IsClearPath(agentPos, targetWorld);
 
         // Draw green if clear LOS, else red
         Color lineColor = clearPath ? Color.green : Color.red;
