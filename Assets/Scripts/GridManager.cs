@@ -49,8 +49,6 @@ public class GridManager : MonoBehaviour
         float worldX = node.gridPos.x * cellSize - gridWorldWidth / 2f + cellSize / 2f;
         float worldY = node.gridPos.y * cellSize - gridWorldHeight / 2f + cellSize / 2f;
 
-        Debug.Log($"Node GridPos: {node.gridPos}, WorldPos: ({worldX}, {worldY})");
-
         return new Vector2(worldX, worldY);
     }
 

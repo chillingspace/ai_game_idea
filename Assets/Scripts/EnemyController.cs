@@ -69,7 +69,7 @@ public class EnemyController : MonoBehaviour
         behaviorTree?.Tick();
 
         // FSM handle execution of goal
-        stateMachine.FSMUpdate(currentState); // Let FSM handle all updates per frame
+        stateMachine.FSMUpdate(currentState); 
     }
 
     void SetupLineRenderer()
