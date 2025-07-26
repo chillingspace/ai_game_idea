@@ -13,6 +13,7 @@ public class PlayerControl : MonoBehaviour
     void Start()
     {
         rb2D = GetComponent<Rigidbody2D>();
+        rb2D.interpolation = RigidbodyInterpolation2D.Interpolate;
     }
 
     // Update is called once per frame
@@ -22,6 +23,8 @@ public class PlayerControl : MonoBehaviour
         float inputY = Input.GetAxisRaw("Vertical");   // W/S or Up/Down
 
         moveInput = new Vector2(inputX, inputY).normalized;
+
+       
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
@@ -36,7 +39,13 @@ public class PlayerControl : MonoBehaviour
 
     void FixedUpdate()
     {
-        rb2D.MovePosition(rb2D.position + moveInput * moveSpeed * Time.fixedDeltaTime);
+        Vector2 newPosition = rb2D.position + moveInput * moveSpeed * Time.fixedDeltaTime;
+        rb2D.MovePosition(newPosition);
+        if (moveInput.sqrMagnitude > 0.01f)
+        {
+            float targetAngle = Mathf.Atan2(moveInput.y, moveInput.x) * Mathf.Rad2Deg - 90f;
+            transform.rotation = Quaternion.Euler(0f, 0f, targetAngle);
+        }
     }
 
     private void ToggleEnemyPathDebug()
