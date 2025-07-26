@@ -182,7 +182,7 @@ MonoBehaviour:
   patrolPoints: []
   patrolIndex: 0
   showDebugPath: 1
-  pathLineWidth: 0.1
+  pathLineWidth: 0.05
   useSplineSmoothing: 1
   pathMarkerPrefab: {fileID: 0}
 --- !u!114 &2971157624167090944
