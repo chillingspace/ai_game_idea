@@ -242,6 +242,23 @@ public class EnemyStateMachine
 
     private void MoveAlongPath()
     {
+        Vector2 separationForce = Vector2.zero;
+        float separationRadius = 0.5f;
+        float pushStrength = 0.05f;
+
+        Collider2D[] hits = Physics2D.OverlapCircleAll(enemy.transform.position, separationRadius);
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.gameObject != enemy.gameObject && hit.CompareTag("Enemy"))
+            {
+                Vector2 pushDir = (Vector2)(enemy.transform.position - hit.transform.position).normalized;
+                float distance = Vector2.Distance(enemy.transform.position, hit.transform.position);
+                float pushAmount = (separationRadius - distance) * pushStrength;
+                separationForce += pushDir * pushAmount;
+            }
+        }
+
+
         // Choose appropriate path based on smoothing toggle
         List<Vector3> currentPath = enemy.useSplineSmoothing ? enemy.smoothedPath : 
             new List<Vector3> { enemy.pathfinder.gridManager.GetWorldFromNode(enemy.path[enemy.pathIndex]) };
@@ -261,6 +278,9 @@ public class EnemyStateMachine
 
         // Move toward target
         enemy.transform.position = Vector3.MoveTowards(currentPos, targetPos, enemy.moveSpeed * Time.deltaTime);
+
+        // Seperation logic after moving
+        PreventOverlapWithOtherEnemies();
 
         // Advance to next point if close enough
         float tolerance = enemy.useSplineSmoothing ? 0.05f : 0.1f;
@@ -304,4 +324,18 @@ public class EnemyStateMachine
             enemy.currentState = EnemyState.RangeAttack;
         }
     }
+
+    private void PreventOverlapWithOtherEnemies()
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(enemy.transform.position, 0.4f);  // adjust radius if needed
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.gameObject != enemy.gameObject && hit.CompareTag("Enemy"))
+            {
+                Vector2 direction = (enemy.transform.position - hit.transform.position).normalized;
+                enemy.transform.position += (Vector3)(direction * 0.01f);
+            }
+        }
+    }
+
 }

@@ -22,7 +22,6 @@ public class PlayerControl : MonoBehaviour
         float inputY = Input.GetAxisRaw("Vertical");   // W/S or Up/Down
 
         moveInput = new Vector2(inputX, inputY).normalized;
-
     }
 
     void FixedUpdate()
