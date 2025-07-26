@@ -48,14 +48,17 @@ public class EnemyController : MonoBehaviour
     public int patrolIndex = 0;
     public bool showDebugPath= true;
 
-    [Range(0.1f, 1.0f)]
-    public float pathLineWidth = 0.1f;
+    [Range(0.05f, 1.0f)]
+    public float pathLineWidth = 0.05f;
 
     // Visualize path
     public bool useSplineSmoothing = true;
     public GameObject pathMarkerPrefab; // Assign this prefab in Inspector
     private List<GameObject> spawnedPathMarkers = new List<GameObject>();
+
+    // For line renderer
     private LineRenderer pathLineRenderer;
+    private LineRenderer losLineRenderer;
 
     private EnemyStateMachine stateMachine;
 
@@ -90,20 +93,36 @@ public class EnemyController : MonoBehaviour
 
     void SetupLineRenderer()
     {
+        // For pathline
         pathLineRenderer = gameObject.GetComponent<LineRenderer>();
         if (pathLineRenderer == null)
         {
             pathLineRenderer = gameObject.AddComponent<LineRenderer>();
         }
 
-        Material lineMaterial = new Material(Shader.Find("Sprites/Default"));
-        lineMaterial.color = Color.cyan;
-        pathLineRenderer.material = lineMaterial;
+        Material PathlineMaterial = new Material(Shader.Find("Sprites/Default"));
+        PathlineMaterial.color = Color.purple;
+        pathLineRenderer.material = PathlineMaterial;
         pathLineRenderer.startWidth = pathLineWidth;
         pathLineRenderer.endWidth = pathLineWidth;
         pathLineRenderer.positionCount = 0;
         pathLineRenderer.useWorldSpace = true;
         pathLineRenderer.sortingOrder = 1;
+
+        // For LOS 
+        GameObject losGO = new GameObject("LOSLineRenderer");
+        losGO.transform.parent = transform;
+        losGO.transform.localPosition = Vector3.zero;
+
+        losLineRenderer = losGO.AddComponent<LineRenderer>();
+        Material losMaterial = new Material(Shader.Find("Sprites/Default"));
+        losMaterial.color = Color.white;
+        losLineRenderer.material = losMaterial;
+        losLineRenderer.startWidth = pathLineWidth;
+        losLineRenderer.endWidth = pathLineWidth;
+        losLineRenderer.positionCount = 0;
+        losLineRenderer.useWorldSpace = true;
+        losLineRenderer.sortingOrder = 2;
     }
 
     public void SetPath(List<Node> newPath)
@@ -136,15 +155,14 @@ public class EnemyController : MonoBehaviour
 
         Node targetNode = pathfinder.gridManager.GetNodeFromGridPos(targetGridPos);
 
-        // Get target node world position as Vector2
         Vector2 targetWorld = pathfinder.gridManager.GetWorldFromNode(targetNode);
 
         Vector2 toTarget = targetWorld - agentPos;
 
         if (toTarget.magnitude == 0f)
         {
-            // Draw a green dot if agent is on the target cell
-            Debug.DrawLine(agentPos, agentPos + forward * 0.1f, Color.green, 0.1f);
+            // Draw a short green line in front of agent to indicate LOS at same cell
+            DrawLOSLine(agentPos, agentPos + forward * 0.1f, Color.green);
             return true;
         }
 
@@ -156,8 +174,8 @@ public class EnemyController : MonoBehaviour
         float dot = Vector2.Dot(forward, toTarget);
         if (dot < cosThreshold)
         {
-            // Draw red line indicating target outside FOV
-            Debug.DrawLine(agentPos, targetWorld, Color.red, 0.1f);
+            // Target outside FOV: draw red LOS line
+            DrawLOSLine(agentPos, targetWorld, Color.red);
             return false;
         }
 
@@ -165,12 +183,24 @@ public class EnemyController : MonoBehaviour
 
         bool clearPath = pathfinder.gridManager.IsClearPath(agentGrid, targetGridPos);
 
-        // Draw green line if clear LOS, else red
+        // Draw green if clear LOS, else red
         Color lineColor = clearPath ? Color.green : Color.red;
-        Debug.DrawLine(agentPos, targetWorld, lineColor, 0.1f);
+        DrawLOSLine(agentPos, targetWorld, lineColor);
 
         return clearPath;
     }
+
+    // Helper method to draw LOS using LineRenderer
+    void DrawLOSLine(Vector2 start, Vector2 end, Color color)
+    {
+        if (losLineRenderer == null) return;
+
+        losLineRenderer.positionCount = 2;
+        losLineRenderer.SetPosition(0, new Vector3(start.x, start.y, 0f));
+        losLineRenderer.SetPosition(1, new Vector3(end.x, end.y, 0f));
+        losLineRenderer.material.color = color;
+    }
+
 
 
     /*
