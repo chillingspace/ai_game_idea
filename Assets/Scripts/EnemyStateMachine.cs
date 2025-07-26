@@ -242,9 +242,25 @@ public class EnemyStateMachine
 
     private void MoveAlongPath()
     {
+        Vector2 separationForce = Vector2.zero;
+        float separationRadius = 0.5f;
+        float pushStrength = 0.05f;
+
+        Collider2D[] hits = Physics2D.OverlapCircleAll(enemy.transform.position, separationRadius);
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.gameObject != enemy.gameObject && hit.CompareTag("Enemy"))
+            {
+                Vector2 pushDir = (Vector2)(enemy.transform.position - hit.transform.position).normalized;
+                float distance = Vector2.Distance(enemy.transform.position, hit.transform.position);
+                float pushAmount = (separationRadius - distance) * pushStrength;
+                separationForce += pushDir * pushAmount;
+            }
+        }
         // Choose path and index based on smoothing
         List<Vector3> currentPath = null;
         int index = 0;
+
         if (enemy.useSplineSmoothing)
         {
             currentPath = enemy.smoothedPath;
@@ -322,4 +338,18 @@ public class EnemyStateMachine
             enemy.currentState = EnemyState.RangeAttack;
         }
     }
+
+    private void PreventOverlapWithOtherEnemies()
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(enemy.transform.position, 0.4f);  // adjust radius if needed
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.gameObject != enemy.gameObject && hit.CompareTag("Enemy"))
+            {
+                Vector2 direction = (enemy.transform.position - hit.transform.position).normalized;
+                enemy.transform.position += (Vector3)(direction * 0.01f);
+            }
+        }
+    }
+
 }

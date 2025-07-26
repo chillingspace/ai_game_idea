@@ -16,6 +16,10 @@ public class EnemyController : MonoBehaviour
     //[SerializeField] private GameObject meleeHitboxVisual;
     public GameObject meleeAttackEffect; // Assign in inspector
 
+    //private Rigidbody2D rb2D;
+    [HideInInspector] public Rigidbody2D rb2D;
+
+
     private BTNode behaviorTree;
 
     public Transform target;
@@ -79,6 +83,9 @@ public class EnemyController : MonoBehaviour
 
         shootLogic = GetComponent<EnemyShootLogic>();
         shootLogic.enemy = this;
+
+        rb2D = GetComponent<Rigidbody2D>();
+
 
     }
 
