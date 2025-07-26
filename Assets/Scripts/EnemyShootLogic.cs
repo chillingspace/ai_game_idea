@@ -66,7 +66,7 @@ public class EnemyShootLogic : MonoBehaviour
         switch (Type)
         {
             case ShotType.Single:
-                SpawnBullet(transform.up);
+                SpawnBullet(direction);
                 break;
         }
     }
