@@ -53,7 +53,6 @@ public class EnemyController : MonoBehaviour
     {
         currentState = EnemyState.Idle;
 
-        lastPlayerTile = pathfinder.gridManager.GetNodeFromWorld(target.position).gridPos;
         path = pathfinder.FindPath(transform.position, target.position);
         pathIndex = 0;
         stateMachine = new EnemyStateMachine(this);  // Initialize FSM with reference to this controller
