@@ -59,6 +59,10 @@ public class EnemyShootLogic : MonoBehaviour
 
     void Fire()
     {
+        Vector2 origin = enemy.transform.position;
+        Vector2 targetPos = enemy.target.position;
+        Vector2 direction = (targetPos - origin).normalized;
+
         switch (Type)
         {
             case ShotType.Single:
