@@ -49,25 +49,13 @@ public class EnemyStateMachine
     {
         if (enemy.path == null || enemy.path.Count == 0)
         {
-            enemy.GeneratePatrolTarget(); // generates new patrolTarget and path
+            enemy.GeneratePatrolTarget();
             return;
         }
 
-        // Bounds check for pathIndex
-        if (enemy.pathIndex < 0 || enemy.pathIndex >= enemy.path.Count)
-        {
-            Debug.LogWarning($"PathIndex out of bounds: {enemy.pathIndex} / {enemy.path.Count}. Resetting to 0.");
-            enemy.pathIndex = 0;
+        // Clamp pathIndex to valid range [0, path.Count - 1]
+        enemy.pathIndex = Mathf.Clamp(enemy.pathIndex, 0, enemy.path.Count - 1);
 
-            // Double check after reset
-            if (enemy.path.Count == 0)
-            {
-                enemy.path = null;
-                return;
-            }
-        }
-
-        // Get current target node with additional safety check
         Node targetNode = enemy.path[enemy.pathIndex];
         if (targetNode == null)
         {
@@ -85,15 +73,15 @@ public class EnemyStateMachine
         {
             enemy.pathIndex++;
 
-            // Check if we've reached the end of the path
             if (enemy.pathIndex >= enemy.path.Count)
             {
                 // Finished path – prepare to patrol again next update
                 enemy.path = null;
-                enemy.pathIndex = 0; // Reset index for safety
+                enemy.pathIndex = 0;
             }
         }
     }
+
 
     public void ChaseUpdate()
     {
@@ -129,9 +117,14 @@ public class EnemyStateMachine
                 else
                 {
                     // At end of last known path, switch state
+                   
                     chaseTimer = 0f;
                     enemy.reachedLastKnownPosition = false;
                     enemy.currentState = EnemyState.Patrol; // or Patrol
+                    enemy.path = null;
+                    enemy.pathIndex = 0;
+                    enemy.GeneratePatrolTarget();
+
                 }
 
                 return;
