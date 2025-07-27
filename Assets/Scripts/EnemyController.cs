@@ -54,7 +54,6 @@ public class EnemyController : MonoBehaviour
     public float chaseTimer = 0f;
     public float chaseTimeout = 2f; // tweak as needed
     public bool reachedLastKnownPosition = false;
-    private bool hasLostSight = false;
 
 
     // Patrol points for simple patrol behavior
@@ -272,11 +271,12 @@ public class EnemyController : MonoBehaviour
 
     public bool AtDestination()
     {
-        if (path == null || path.Count == 0)
+        if (path == null || pathIndex >= path.Count)
             return true;
 
-        // Check if pathIndex is at or past last node
-        return pathIndex >= path.Count;
+        Vector2 targetPos = pathfinder.gridManager.GetWorldFromNode(path[^1]);
+        float dist = Vector2.Distance(transform.position, targetPos);
+        return dist < 0.1f;
     }
 
 
