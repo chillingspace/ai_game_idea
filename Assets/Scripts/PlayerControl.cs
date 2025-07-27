@@ -10,6 +10,11 @@ public class PlayerControl : MonoBehaviour
     private Rigidbody2D rb2D;
     private Vector2 moveInput;
 
+    public bool player_hit = false;
+    private float hit_timer = 0.0f;
+    private const float hit_duration = 0.25f;
+    private Color hit_color = Color.pink;
+
     void Start()
     {
         rb2D = GetComponent<Rigidbody2D>();
@@ -24,8 +29,6 @@ public class PlayerControl : MonoBehaviour
 
         moveInput = new Vector2(inputX, inputY).normalized;
 
-       
-
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             ToggleEnemyPathDebug();
@@ -34,6 +37,33 @@ public class PlayerControl : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             ToggleEnemySmoothing();
+        }
+
+        //Player hit by enemy
+        if(player_hit)
+        {
+            hit_timer = hit_duration;
+            player_hit = false;
+        }
+        else
+        {
+            SpriteRenderer sr = GetComponent<SpriteRenderer>();
+
+            if (hit_timer > 0.0f)
+            {
+                hit_timer -= Time.deltaTime;
+                if (sr != null)
+                {
+                    sr.color = hit_color;
+                }
+            }
+            else
+            {
+                if (sr != null)
+                {
+                    sr.color = Color.white;
+                }
+            }
         }
     }
 

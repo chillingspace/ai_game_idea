@@ -427,6 +427,14 @@ public class EnemyController : MonoBehaviour
             {
                 slash.BeginFadeAndDestroy(); // start coroutine *after* setting values
             }
+
+            // Find the first active GameObject tagged "Player"
+            GameObject playerGO = GameObject.FindGameObjectWithTag("Player");
+            if (playerGO != null)
+            {
+                PlayerControl pc = playerGO.GetComponent<PlayerControl>();
+                if (pc) pc.player_hit = true;
+            }
         }
     }
 
