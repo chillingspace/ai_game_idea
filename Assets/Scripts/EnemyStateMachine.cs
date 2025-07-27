@@ -53,8 +53,30 @@ public class EnemyStateMachine
             return;
         }
 
-        // Move toward the current node in the path
+        // Bounds check for pathIndex
+        if (enemy.pathIndex < 0 || enemy.pathIndex >= enemy.path.Count)
+        {
+            Debug.LogWarning($"PathIndex out of bounds: {enemy.pathIndex} / {enemy.path.Count}. Resetting to 0.");
+            enemy.pathIndex = 0;
+
+            // Double check after reset
+            if (enemy.path.Count == 0)
+            {
+                enemy.path = null;
+                return;
+            }
+        }
+
+        // Get current target node with additional safety check
         Node targetNode = enemy.path[enemy.pathIndex];
+        if (targetNode == null)
+        {
+            Debug.LogWarning($"Target node is null at index {enemy.pathIndex}. Generating new patrol target.");
+            enemy.path = null;
+            enemy.pathIndex = 0;
+            return;
+        }
+
         Vector2 moveTarget = enemy.pathfinder.gridManager.GetWorldFromNode(targetNode);
         enemy.transform.position = Vector2.MoveTowards(enemy.transform.position, moveTarget, enemy.moveSpeed * Time.deltaTime);
 
@@ -62,14 +84,16 @@ public class EnemyStateMachine
         if (Vector2.Distance(enemy.transform.position, moveTarget) < threshold)
         {
             enemy.pathIndex++;
+
+            // Check if we've reached the end of the path
             if (enemy.pathIndex >= enemy.path.Count)
             {
-                // Finished path � prepare to patrol again next update
+                // Finished path – prepare to patrol again next update
                 enemy.path = null;
+                enemy.pathIndex = 0; // Reset index for safety
             }
         }
     }
-
 
     public void ChaseUpdate()
     {
@@ -107,7 +131,7 @@ public class EnemyStateMachine
                     // At end of last known path, switch state
                     chaseTimer = 0f;
                     enemy.reachedLastKnownPosition = false;
-                    enemy.currentState = EnemyState.Idle; // or Patrol
+                    enemy.currentState = EnemyState.Patrol; // or Patrol
                 }
 
                 return;
