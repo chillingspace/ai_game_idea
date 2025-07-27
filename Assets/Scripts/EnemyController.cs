@@ -53,9 +53,8 @@ public class EnemyController : MonoBehaviour
 
     // Patrol points for simple patrol behavior
     [HideInInspector]
-    public List<Vector2> patrolPoints;
-    [HideInInspector]
-    public int patrolIndex = 0;
+    public Vector2 patrolTarget;
+
     public bool showDebugPath = true;
 
     [Range(0.05f, 1.0f)]
@@ -80,8 +79,6 @@ public class EnemyController : MonoBehaviour
 
         currentState = EnemyState.Idle;
 
-        path = pathfinder.FindPath(transform.position, target.position);
-        pathIndex = 0;
         stateMachine = new EnemyStateMachine(this);  // Initialize FSM with reference to this controller
         SetupLineRenderer();
 
@@ -92,9 +89,47 @@ public class EnemyController : MonoBehaviour
         shootLogic.enemy = this;
 
         rb2D = GetComponent<Rigidbody2D>();
-
-
     }
+
+    public void GeneratePatrolTarget()
+    {
+        GridManager gridManager = pathfinder.gridManager;
+        if (gridManager == null || !gridManager.IsReady()) return;
+
+        int tries = 0;
+        int maxTries = 20;
+
+        while (tries < maxTries)
+        {
+            int randX = Random.Range(0, gridManager.width);
+            int randY = Random.Range(0, gridManager.height);
+            Vector2Int gridPos = new Vector2Int(randX, randY);
+
+            if (gridManager.IsWalkable(gridPos))
+            {
+                Node node = gridManager.GetNodeFromGridPos(gridPos);
+                if (node != null)
+                {
+                    Vector2 worldPos = gridManager.GetWorldFromNode(node);
+
+                    // Check that it’s reachable
+                    var path = pathfinder.FindPath(transform.position, worldPos);
+                    if (path != null && path.Count > 0)
+                    {
+                        SetPath(path);
+                        patrolTarget = worldPos;
+                        return;
+                    }
+                }
+            }
+
+            tries++;
+        }
+
+        Debug.LogWarning("Failed to find a valid patrol target.");
+    }
+
+
 
     void Update()
     {
@@ -360,6 +395,7 @@ public class EnemyController : MonoBehaviour
         }),
         new Sequence(new List<BTNode>
         {
+            new ConditionNode(() => HasLineOfSight(transform.position, (target.position - transform.position).normalized, pathfinder.gridManager.GetNodeFromWorld(target.position).gridPos)),
             new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= detectionRadius),
             new ActionNode(() => {
                 //Debug.Log("BT: Switching to Chase");

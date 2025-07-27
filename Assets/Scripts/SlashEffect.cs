@@ -26,14 +26,11 @@ public class SlashEffect : MonoBehaviour
     }
 
     private IEnumerator FadeAndDestroy()
-    {
-        Debug.Log("BeginFadeAndDestroy called");
+    {        
         yield return new WaitForSeconds(lifetime);
-        Debug.Log("Starting fade out...");
-
+        
         float elapsed = 0f;
-        Color originalColor = sr.color;
-        Debug.Log($"[FadeStart] Starting with alpha: {originalColor.a}");
+        Color originalColor = sr.color;       
 
         while (elapsed < fadeTime)
         {
@@ -41,11 +38,9 @@ public class SlashEffect : MonoBehaviour
             float t = Mathf.Clamp01(elapsed / fadeTime);
             float alpha = Mathf.SmoothStep(1f, 0f, t);
             sr.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
-            Debug.Log($"Fade progress: t={t}, alpha={alpha}");
             yield return null;
         }
 
-        Debug.Log("Fade complete, destroying object.");
         Destroy(gameObject);
     }
 }

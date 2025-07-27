@@ -44,22 +44,33 @@ public class EnemyStateMachine
 
     public void PatrolUpdate()
     {
-        if (enemy.patrolPoints == null || enemy.patrolPoints.Count == 0)
+        if (enemy.path == null || enemy.path.Count == 0)
         {
-            Debug.LogWarning("No patrol points assigned to enemy!");
+            enemy.GeneratePatrolTarget(); // generates new patrolTarget and path
             return;
         }
 
-        if (enemy.path == null || enemy.pathIndex >= enemy.path.Count)
+        // Move toward the current node in the path
+        Node targetNode = enemy.path[enemy.pathIndex];
+        Vector2 moveTarget = enemy.pathfinder.gridManager.GetWorldFromNode(targetNode);
+        enemy.transform.position = Vector2.MoveTowards(enemy.transform.position, moveTarget, enemy.moveSpeed * Time.deltaTime);
+
+        float threshold = 0.05f;
+        if (Vector2.Distance(enemy.transform.position, moveTarget) < threshold)
         {
-            enemy.patrolIndex = (enemy.patrolIndex + 1) % enemy.patrolPoints.Count;
-            SetPathToPatrolPoint();
-        }
-        else
-        {
-            MoveAlongPath();
+            enemy.pathIndex++;
+            if (enemy.pathIndex >= enemy.path.Count)
+            {
+                // Finished path — prepare to patrol again next update
+                enemy.path = null;
+            }
         }
     }
+
+
+
+
+
 
     public void ChaseUpdate()
     {
@@ -188,16 +199,6 @@ public class EnemyStateMachine
         return enemy.transform.position; // fallback
     }
 
-
-    private void SetPathToPatrolPoint()
-    {
-        if (enemy.patrolPoints == null || enemy.patrolPoints.Count == 0) return;
-
-        var newPath = enemy.pathfinder.FindPath(enemy.transform.position, enemy.patrolPoints[enemy.patrolIndex]);
-        enemy.SetPath(newPath);
-
-        enemy.VisualizePath();
-    }
 
     private Vector2Int FindFavorableMeleeTile()
     {
