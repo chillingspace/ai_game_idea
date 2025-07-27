@@ -107,7 +107,8 @@ public class EnemyController : MonoBehaviour
             if (randX < 0 || randX >= gridManager.width || randY < 0 || randY >= gridManager.height)
             {
                 Debug.Log("Rand pos out of grid");
-                return;
+                tries++;
+                continue;
             }
 
             Vector2Int gridPos = new Vector2Int(randX, randY);
