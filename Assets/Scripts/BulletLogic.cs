@@ -26,6 +26,13 @@ public class BulletLogic : MonoBehaviour
         if (col.isTrigger || col.tag == Team.ToString())
             return;
 
+        //Player hit
+        if (col.CompareTag("Player"))
+        {
+            PlayerControl pc = col.GetComponent<PlayerControl>();
+            pc.player_hit = true;
+        }
+
         // Add more logic here for damaging player/enemy if needed
         Destroy(gameObject);
     }
