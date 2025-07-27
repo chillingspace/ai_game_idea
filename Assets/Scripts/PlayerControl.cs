@@ -29,6 +29,16 @@ public class PlayerControl : MonoBehaviour
 
         moveInput = new Vector2(inputX, inputY).normalized;
 
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+
+            // If you're testing in the Unity Editor, also stop play mode:
+            #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+            #endif
+        }
+
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             ToggleEnemyPathDebug();
