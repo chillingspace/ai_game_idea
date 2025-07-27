@@ -32,7 +32,7 @@ public class EnemyController : MonoBehaviour
     public float meleeRange = 1f;
     public float meleeAttackCooldown = 1f;
     public float lastMeleeAttackTime = -Mathf.Infinity;
-
+    public float enemyFOV = 190.5f;
 
     [HideInInspector] public EnemyShootLogic shootLogic;
 
@@ -46,10 +46,16 @@ public class EnemyController : MonoBehaviour
     [HideInInspector]
     public int smoothedPathIndex = 0;
 
-
     [HideInInspector]
     public Vector2Int lastPlayerTile;
     public EnemyState currentState;
+
+    [Header("Chase Settings")]
+    public float chaseTimer = 0f;
+    public float chaseTimeout = 2f; // tweak as needed
+    public bool reachedLastKnownPosition = false;
+    private bool hasLostSight = false;
+
 
     // Patrol points for simple patrol behavior
     [HideInInspector]
@@ -105,7 +111,10 @@ public class EnemyController : MonoBehaviour
             behaviorTree.Tick(); 
 
         // FSM handle execution of goal
-        stateMachine.FSMUpdate(); 
+        stateMachine.FSMUpdate();
+
+  
+
     }
 
     void SetupLineRenderer()
@@ -185,7 +194,7 @@ public class EnemyController : MonoBehaviour
 
         toTarget.Normalize();
 
-        float fovDeg = 190.5f;
+        float fovDeg = enemyFOV;
         float cosThreshold = Mathf.Cos(fovDeg * 0.5f * Mathf.Deg2Rad);
 
         float dot = Vector2.Dot(forward, toTarget);
@@ -218,6 +227,14 @@ public class EnemyController : MonoBehaviour
         losLineRenderer.material.color = color;
     }
 
+    public bool AtDestination()
+    {
+        if (path == null || path.Count == 0)
+            return true;
+
+        // Check if pathIndex is at or past last node
+        return pathIndex >= path.Count;
+    }
 
 
     /*
@@ -361,6 +378,7 @@ public class EnemyController : MonoBehaviour
         new Sequence(new List<BTNode>
         {
             new ConditionNode(() => Vector2.Distance(transform.position, target.position) <= detectionRadius),
+            new ConditionNode(() => HasLineOfSight(transform.position, (target.position - transform.position).normalized, pathfinder.gridManager.GetNodeFromWorld(target.position).gridPos)),
             new ActionNode(() => {
                 //Debug.Log("BT: Switching to Chase");
                 currentState = EnemyState.Chase;

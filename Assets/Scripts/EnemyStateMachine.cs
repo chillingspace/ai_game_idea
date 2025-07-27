@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 public class EnemyStateMachine
 {
+    private float chaseTimer = 0f;
+    public float chaseTimeout = 3f; // chase for 3 seconds after LOS lost (adjust as needed)
+
     private EnemyController enemy;
 
     public EnemyStateMachine(EnemyController enemyController)
@@ -61,24 +64,60 @@ public class EnemyStateMachine
         }
     }
 
+
     public void ChaseUpdate()
     {
         Node playerNode = enemy.pathfinder.gridManager.GetNodeFromWorld(enemy.target.position);
         if (playerNode == null) return;
 
         Vector2Int currentPlayerTile = playerNode.gridPos;
+        Vector2 dir = (enemy.target.position - enemy.transform.position).normalized;
+        bool hasLOS = enemy.HasLineOfSight(enemy.transform.position, dir, currentPlayerTile);
 
-        if (currentPlayerTile != enemy.lastPlayerTile)
+        if (hasLOS)
         {
-            enemy.lastPlayerTile = currentPlayerTile;
-            var newPath = enemy.pathfinder.FindPath(enemy.transform.position, enemy.target.position);
-            enemy.SetPath(newPath);
-
-            enemy.VisualizePath();
+            // LOS regained, reset timer
+            chaseTimer = 0f;
         }
+        else
+        {
+            // Start ticking the timer if LOS lost
+            chaseTimer += Time.deltaTime;
+
+            if (chaseTimer >= chaseTimeout)
+            {
+                // Stop updating path once timer expires
+                if (!enemy.reachedLastKnownPosition)
+                {
+                    // Don't recalc anymore — just keep moving on existing path
+                    MoveAlongPath();
+                    if (enemy.AtDestination())
+                    {
+                        enemy.reachedLastKnownPosition = true;
+                    }
+                }
+                else
+                {
+                    // At end of last known path, switch state
+                    chaseTimer = 0f;
+                    enemy.reachedLastKnownPosition = false;
+                    enemy.currentState = EnemyState.Idle; // or Patrol
+                }
+
+                return;
+            }
+        }
+
+        // While timeout not reached, keep repathing
+        enemy.lastPlayerTile = currentPlayerTile;
+        var newPath = enemy.pathfinder.FindPath(enemy.transform.position, enemy.target.position);
+        enemy.SetPath(newPath);
+        enemy.VisualizePath();
 
         MoveAlongPath();
     }
+
+
 
     public void RangeAttackUpdate()
     {
@@ -318,14 +357,23 @@ public class EnemyStateMachine
     public void CheckForPlayer()
     {
         float distanceToPlayer = Vector2.Distance(enemy.transform.position, enemy.target.position);
+        Vector2 dir = (enemy.target.position - enemy.transform.position).normalized;
+
+        bool hasLOS = enemy.HasLineOfSight(enemy.transform.position, dir,
+        enemy.pathfinder.gridManager.GetNodeFromWorld(enemy.target.position).gridPos);
+
         if (distanceToPlayer <= enemy.detectionRadius)
         {
-            enemy.currentState = EnemyState.Chase;
-            enemy.lastPlayerTile = enemy.pathfinder.gridManager.GetNodeFromWorld(enemy.target.position).gridPos;
-            var newPath = enemy.pathfinder.FindPath(enemy.transform.position, enemy.target.position);
-            enemy.SetPath(newPath);
+            if (hasLOS)
+            {
+                enemy.currentState = EnemyState.Chase;
+                enemy.lastPlayerTile = enemy.pathfinder.gridManager.GetNodeFromWorld(enemy.target.position).gridPos;
+                var newPath = enemy.pathfinder.FindPath(enemy.transform.position, enemy.target.position);
+                enemy.SetPath(newPath);
+            }
         }
     }
+
 
     public void CheckAttackRange()
     {
